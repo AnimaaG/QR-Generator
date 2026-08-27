@@ -1,803 +1,898 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Local QR Generator creates QR codes locally and lets you upload large files to your own Google Drive.">
 <title>Local QR Generator</title>
+
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <style>
-:root{
-    --bg:#070b16;
-    --bg2:#0b1120;
-    --panel:rgba(15,23,42,.78);
-    --panel2:rgba(20,30,52,.88);
-    --line:rgba(148,163,184,.15);
-    --line-strong:rgba(96,165,250,.32);
-    --text:#f8fafc;
-    --muted:#94a3b8;
-    --blue:#60a5fa;
-    --blue2:#2563eb;
-    --purple:#8b5cf6;
-    --cyan:#22d3ee;
-    --green:#34d399;
-    --red:#fb7185;
-    --shadow:0 30px 90px rgba(0,0,0,.42);
+* {
+    box-sizing: border-box;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-    margin:0;min-height:100vh;color:var(--text);
-    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    background:
-      radial-gradient(circle at 10% 0%,rgba(59,130,246,.18),transparent 28%),
-      radial-gradient(circle at 92% 8%,rgba(139,92,246,.16),transparent 28%),
-      radial-gradient(circle at 50% 100%,rgba(34,211,238,.08),transparent 32%),
-      var(--bg);
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0d1117;
+    color: #fff;
+    font-family: Arial, sans-serif;
 }
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
 
-.screen{min-height:100vh;padding:28px;display:flex;align-items:center;justify-content:center}
-.card{width:min(620px,100%);background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:38px;box-shadow:var(--shadow);backdrop-filter:blur(22px)}
-.logo{display:flex;align-items:center;gap:13px;margin-bottom:28px}
-.logo-mark{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue2),var(--purple));box-shadow:0 12px 34px rgba(37,99,235,.3)}
-.logo-mark svg{width:26px;height:26px}
-.logo-name{font-weight:850;font-size:18px}
-.logo-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.eyebrow{display:inline-flex;gap:8px;align-items:center;color:#bfdbfe;background:rgba(59,130,246,.1);border:1px solid rgba(96,165,250,.18);padding:7px 11px;border-radius:999px;font-size:12px;font-weight:800}
-.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(52,211,153,.1)}
-h1{font-size:clamp(38px,6vw,62px);line-height:1;letter-spacing:-.055em;margin:20px 0 14px}
-.gradient{background:linear-gradient(100deg,#fff 10%,#93c5fd 50%,#c4b5fd 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.subtitle{color:var(--muted);line-height:1.7;font-size:15px}
-.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:25px 0}
-.info-tile{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(8,13,25,.62)}
-.info-tile b{display:block;font-size:13px;margin-bottom:5px}
-.info-tile span{font-size:12px;color:var(--muted);line-height:1.5}
-.btn{border:1px solid var(--line);border-radius:13px;padding:13px 17px;background:rgba(30,41,59,.75);color:#fff;font-weight:750;transition:.2s}
-.btn:hover{transform:translateY(-2px);border-color:var(--line-strong);background:rgba(51,65,85,.85)}
-.btn-primary{border:0;background:linear-gradient(135deg,var(--blue2),var(--purple));box-shadow:0 12px 34px rgba(37,99,235,.24)}
-.btn-primary:hover{filter:brightness(1.08)}
-.full{width:100%}
-.action-row{display:flex;gap:10px;flex-wrap:wrap}
-.notice{margin-top:18px;color:#94a3b8;font-size:12px;line-height:1.6}
-.setup-account{padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(8,13,25,.62);margin:22px 0}
-.setup-account strong{font-size:14px}
-.setup-account p{color:var(--muted);font-size:12px;line-height:1.6;margin:7px 0 0}
-
-.app{min-height:100vh}
-.topbar{height:74px;position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line);background:rgba(7,11,22,.76);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,70px)}
-.brand{display:flex;align-items:center;gap:11px}
-.brand .logo-mark{width:38px;height:38px;border-radius:12px}
-.brand .logo-mark svg{width:20px;height:20px}
-.brand-title{font-weight:850;font-size:15px}
-.brand-sub{font-size:11px;color:var(--muted)}
-.account-chip{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:rgba(15,23,42,.7);padding:8px 11px;border-radius:13px}
-.account-dot{width:9px;height:9px;border-radius:50%;background:#64748b}
-.account-dot.online{background:var(--green);box-shadow:0 0 0 5px rgba(52,211,153,.08)}
-.account-name{font-size:12px;font-weight:700;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.account-state{font-size:10px;color:var(--muted)}
-
-.container{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:52px 0 50px}
-.hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:28px}
-.hero-row h2{font-size:clamp(32px,5vw,52px);letter-spacing:-.045em;margin:12px 0 8px}
-.hero-row p{color:var(--muted);margin:0;max-width:650px;line-height:1.6}
-.hero-badge{min-width:190px;padding:15px;border:1px solid var(--line);background:rgba(15,23,42,.58);border-radius:17px}
-.hero-badge b{display:block;font-size:13px;margin-bottom:5px}
-.hero-badge span{font-size:11px;color:var(--muted)}
-
-.workspace{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px}
-.panel{border:1px solid var(--line);border-radius:24px;background:var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(20px)}
-.generator{padding:23px}
-.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:19px}
-.panel-title{font-size:19px;font-weight:850}
-.panel-sub{font-size:12px;color:var(--muted);margin-top:4px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:rgba(3,7,18,.72);border:1px solid var(--line);border-radius:15px;margin-bottom:18px}
-.tab{border:0;border-radius:11px;padding:12px;background:transparent;color:#8794a8;font-weight:750}
-.tab.active{color:#fff;background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(139,92,246,.22));box-shadow:inset 0 0 0 1px rgba(96,165,250,.16)}
-label{display:block;font-size:12px;color:#cbd5e1;font-weight:750;margin-bottom:8px}
-textarea,input[type=file]{width:100%}
-textarea{min-height:190px;resize:vertical;padding:16px;border-radius:16px;border:1px solid var(--line);outline:none;background:#080e1b;color:#fff;line-height:1.6}
-textarea:focus{border-color:rgba(96,165,250,.62);box-shadow:0 0 0 4px rgba(59,130,246,.09)}
-.counter{display:flex;justify-content:space-between;margin:8px 2px 16px;color:#64748b;font-size:11px}
-.capacity.good{color:var(--green)}.capacity.bad{color:var(--red)}
-.file-drop{border:1px dashed rgba(148,163,184,.3);border-radius:18px;padding:27px;background:rgba(8,13,25,.55);text-align:center}
-.file-icon{width:54px;height:54px;margin:0 auto 12px;display:grid;place-items:center;border-radius:16px;background:rgba(96,165,250,.1);color:#93c5fd;font-size:24px}
-.file-drop input{margin-top:12px}
-.file-info{display:flex;justify-content:space-between;gap:12px;margin-top:12px;font-size:11px;color:var(--muted);text-align:left}
-.file-info strong{color:#e2e8f0;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.drive-status{min-height:20px;margin:13px 0;font-size:12px;color:var(--muted)}
-.drive-status.success{color:var(--green)}.drive-status.error{color:var(--red)}
-.progress{height:7px;background:#172033;border-radius:999px;overflow:hidden;margin:13px 0}
-.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--blue2),var(--purple));transition:width .25s}
-.security-note{display:flex;gap:10px;padding:13px 14px;margin-top:15px;border:1px solid var(--line);border-radius:14px;background:rgba(15,23,42,.5);font-size:11px;color:#8fa0b7;line-height:1.55}
-.security-note b{color:#cbd5e1}
-
-.result{padding:23px;display:flex;flex-direction:column}
-.result-top{display:flex;justify-content:space-between;align-items:flex-start}
-.status-pill{font-size:10px;font-weight:850;padding:6px 9px;border-radius:999px;color:#86efac;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.12)}
-.qr-stage{min-height:390px;margin:18px 0;padding:25px;border-radius:19px;background:radial-gradient(circle at 50% 35%,rgba(96,165,250,.1),transparent 44%),#080d17;border:1px solid var(--line);display:grid;place-items:center}
-.empty-qr{text-align:center;color:#64748b;max-width:230px;font-size:12px;line-height:1.6}
-.empty-icon{width:68px;height:68px;margin:0 auto 14px;border-radius:20px;display:grid;place-items:center;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);color:#93c5fd;font-size:28px}
-#qrcode{padding:14px;border-radius:17px;background:#fff;line-height:0;box-shadow:0 25px 60px rgba(0,0,0,.45)}
-.qr-meta{text-align:center;margin-bottom:13px}
-.qr-type{font-size:10px;font-weight:850;color:#93c5fd;letter-spacing:.08em}
-.qr-description{font-size:12px;color:var(--muted);line-height:1.55;margin-top:5px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.action{border:1px solid var(--line);border-radius:12px;padding:11px;background:#111827;color:#fff;font-size:12px;font-weight:750}
-.action:hover{border-color:var(--line-strong)}
-.action.main{border:0;background:linear-gradient(135deg,var(--blue2),var(--purple))}
-.bottom-tools{margin-top:18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.bottom-tools button{border:1px solid var(--line);border-radius:11px;background:rgba(15,23,42,.7);color:#94a3b8;padding:9px 12px;font-size:11px}
-.footer{border-top:1px solid var(--line);padding:22px 0;color:#64748b;font-size:11px;display:flex;justify-content:space-between;gap:15px}
-.footer a{color:#94a3b8;text-decoration:none}
-.toast{position:fixed;left:50%;bottom:25px;z-index:100;transform:translate(-50%,18px);opacity:0;pointer-events:none;background:#111827;border:1px solid var(--line);padding:12px 16px;border-radius:13px;box-shadow:var(--shadow);font-size:12px;transition:.25s}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.success{border-color:rgba(52,211,153,.25)}.toast.error{border-color:rgba(251,113,133,.25)}
-
-@media(max-width:900px){
-    .workspace{grid-template-columns:1fr}
-    .result{min-height:600px}
+button,
+input,
+textarea {
+    font: inherit;
 }
-@media(max-width:650px){
-    .screen{padding:15px}
-    .card{padding:25px;border-radius:23px}
-    .info-grid{grid-template-columns:1fr}
-    .topbar{height:65px;padding:0 13px}
-    .account-chip{max-width:52%}
-    .account-name{max-width:105px}
-    .brand-sub{display:none}
-    .container{width:min(100% - 22px,1120px);padding-top:30px}
-    .hero-row{display:block}
-    .hero-badge{margin-top:18px}
-    .workspace{gap:13px}
-    .generator,.result{padding:17px}
-    .qr-stage{min-height:330px}
-    .footer{flex-direction:column}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.card {
+    width: min(600px, 100%);
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 18px;
+    padding: 28px;
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+.title {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #9da7b3;
+    line-height: 1.6;
+}
+
+.info {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+}
+
+.info p {
+    margin: 8px 0;
+    color: #c9d1d9;
+    line-height: 1.5;
+}
+
+.primary {
+    width: 100%;
+    border: 0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    background: #238636;
+    color: white;
+    font-weight: 700;
+}
+
+.secondary {
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 12px 16px;
+    background: #21262d;
+    color: white;
+}
+
+.main {
+    width: min(760px, 100%);
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #c9d1d9;
+    font-weight: 600;
+}
+
+textarea,
+input[type="text"],
+input[type="url"] {
+    width: 100%;
+    background: #0d1117;
+    color: white;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 13px;
+    outline: none;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+textarea:focus,
+input:focus {
+    border-color: #58a6ff;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tab {
+    flex: 1;
+    padding: 11px;
+    border-radius: 9px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #fff;
+}
+
+.tab.active {
+    background: #30363d;
+}
+
+.file-box {
+    border: 2px dashed #30363d;
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+}
+
+.file-box input {
+    width: 100%;
+}
+
+.status {
+    margin-top: 12px;
+    color: #8b949e;
+    line-height: 1.5;
+}
+
+.progress {
+    width: 100%;
+    height: 8px;
+    background: #21262d;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.progress-bar {
+    width: 0;
+    height: 100%;
+    background: #238636;
+    transition: width .2s;
+}
+
+.qr-section {
+    text-align: center;
+}
+
+#qrcode {
+    display: inline-block;
+    background: white;
+    padding: 14px;
+    border-radius: 12px;
+    margin: 15px 0;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.account {
+    color: #8b949e;
+    font-size: 14px;
+}
+
+.notice {
+    color: #f2cc60;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.success {
+    color: #3fb950;
+}
+
+.error {
+    color: #f85149;
 }
 </style>
 </head>
+
 <body>
 
-<section id="welcomeScreen" class="screen">
+<div id="disclaimerScreen" class="screen">
     <div class="card">
-        <div class="logo">
-            <div class="logo-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
-                    <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/>
-                </svg>
-            </div>
-            <div><div class="logo-name">Local QR Generator</div><div class="logo-sub">Private • Fast • Browser-based</div></div>
+        <h1 class="title">Local QR Generator</h1>
+
+        <p class="subtitle">
+            Create QR codes directly in your browser.
+        </p>
+
+        <div class="info">
+            <p><strong>How it works</strong></p>
+            <p>1. Text, links and small information are processed locally in your browser.</p>
+            <p>2. Files such as photos, videos and PDFs are stored in your own Google Drive.</p>
+            <p>3. This website does not store your files on its own server.</p>
+            <p>4. Google Drive access is requested only when file storage is required.</p>
+            <p>5. The generated QR contains the information or your Google Drive file link.</p>
+            <p>6. You can download the generated QR as an image.</p>
         </div>
-        <span class="eyebrow"><i></i> Privacy-first QR creation</span>
-        <h1>Turn anything into a <span class="gradient">QR code.</span></h1>
-        <p class="subtitle">Create QR codes directly on your device. Text and links stay local. Large files can be stored in your own Google Drive.</p>
-        <div class="info-grid">
-            <div class="info-tile"><b>⚡ Local generation</b><span>Text, links and QR data are processed on your device.</span></div>
-            <div class="info-tile"><b>☁ Your Drive</b><span>Files are uploaded to the Google Drive account you authorize.</span></div>
-            <div class="info-tile"><b>🔐 No app server</b><span>The service does not operate its own file-storage server.</span></div>
-            <div class="info-tile"><b>↗ Easy sharing</b><span>Download, copy or share your generated QR code.</span></div>
+
+        <div class="notice">
+            By continuing, you understand that files requiring storage will be uploaded
+            to the Google Drive account that you authorize.
         </div>
-        <button id="continueBtn" class="btn btn-primary full">Continue to QR Generator</button>
-        <div class="notice">Google Drive access is requested only when you choose the Drive upload feature.</div>
+
+        <br>
+
+        <button id="continueBtn" class="primary">
+            Continue
+        </button>
     </div>
-</section>
+</div>
 
-<section id="setupScreen" class="screen hidden">
-    <div class="card">
-        <div class="logo">
-            <div class="logo-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
-                    <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/>
-                </svg>
+
+<div id="appScreen" class="screen hidden">
+    <div class="main">
+
+        <div class="header">
+            <h1>QR Generator</h1>
+            <p class="subtitle">
+                Generate QR codes locally or store larger files in your Google Drive.
+            </p>
+            <div id="accountStatus" class="account"></div>
+        </div>
+
+
+        <div class="section">
+
+            <div class="tabs">
+                <button id="textTab" class="tab active">
+                    Text / Link
+                </button>
+
+                <button id="fileTab" class="tab">
+                    File
+                </button>
             </div>
-            <div><div class="logo-name">Account setup</div><div class="logo-sub">Optional for QR generation</div></div>
+
+
+            <div id="textPanel">
+
+                <label for="textInput">
+                    Enter text or URL
+                </label>
+
+                <textarea
+                    id="textInput"
+                    placeholder="Enter text, URL, contact information, Wi-Fi information, etc."
+                ></textarea>
+
+                <br><br>
+
+                <button id="generateTextBtn" class="primary">
+                    Generate QR
+                </button>
+
+            </div>
+
+
+            <div id="filePanel" class="hidden">
+
+                <div class="file-box">
+
+                    <label for="fileInput">
+                        Select a file
+                    </label>
+
+                    <input
+                        id="fileInput"
+                        type="file"
+                    >
+
+                    <p id="fileInfo" class="status">
+                        No file selected
+                    </p>
+
+                </div>
+
+                <br>
+
+                <button id="connectDriveBtn" class="primary">
+                    Connect Google Drive
+                </button>
+
+                <div id="uploadStatus" class="status"></div>
+
+                <div id="progressContainer" class="progress hidden">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+
+                <br>
+
+                <button id="uploadBtn" class="primary hidden">
+                    Upload & Generate QR
+                </button>
+
+            </div>
+
         </div>
-        <span class="eyebrow"><i></i> Your account • Your Drive</span>
-        <h1>Choose how you want to use it.</h1>
-        <p class="subtitle">You can generate normal QR codes without Google Drive. Connect your Google account when you want to upload files to your own Drive.</p>
-        <div class="setup-account">
-            <strong>Google Drive</strong>
-            <p>Your selected Google account authorizes Drive access for this application. Your files remain in your own Google Drive.</p>
+
+
+        <div id="qrSection" class="section qr-section hidden">
+
+            <h2>Your QR Code</h2>
+
+            <div id="qrDescription" class="status"></div>
+
+            <div id="qrcode"></div>
+
+            <div class="actions">
+
+                <button id="downloadBtn" class="primary">
+                    Download QR Image
+                </button>
+
+                <button id="newBtn" class="secondary">
+                    Create New QR
+                </button>
+
+            </div>
+
         </div>
-        <div class="action-row">
-            <button id="googleBtn" class="btn btn-primary full">Continue with Google</button>
-            <button id="skipBtn" class="btn full">Use without Google Drive</button>
-            <button id="backToWelcome" class="btn full">Back</button>
-        </div>
+
     </div>
-</section>
+</div>
 
-<section id="appScreen" class="app hidden">
-    <header class="topbar">
-        <div class="brand">
-            <div class="logo-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
-                    <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/>
-                </svg>
-            </div>
-            <div><div class="brand-title">Local QR Generator</div><div class="brand-sub">Create locally • Store in your Drive</div></div>
-        </div>
-        <div class="account-chip">
-            <span id="accountDot" class="account-dot"></span>
-            <div><div id="accountName" class="account-name">Local mode</div><div id="accountState" class="account-state">Google Drive not connected</div></div>
-        </div>
-    </header>
-
-    <main class="container">
-        <div class="hero-row">
-            <div>
-                <span class="eyebrow"><i></i> Ready to generate</span>
-                <h2>Your QR, <span class="gradient">your data.</span></h2>
-                <p>Create a QR code in seconds. Use local data for instant generation or upload a larger file to your own Google Drive.</p>
-            </div>
-            <div class="hero-badge"><b>Privacy-first</b><span>No QR data is sent to a Local QR Generator server.</span></div>
-        </div>
-
-        <div class="workspace">
-            <section class="panel generator">
-                <div class="panel-head">
-                    <div><div class="panel-title">Create QR</div><div class="panel-sub">Choose what you want to encode.</div></div>
-                </div>
-
-                <div class="tabs">
-                    <button id="textTab" class="tab active">Text / Link</button>
-                    <button id="fileTab" class="tab">File → Drive</button>
-                </div>
-
-                <div id="textPanel">
-                    <label for="textInput">Text, URL or information</label>
-                    <textarea id="textInput" placeholder="Paste a website URL, message, contact details, Wi-Fi information, payment text, or anything else you want to encode..."></textarea>
-                    <div class="counter"><span id="byteCount">0 / 2,331 bytes</span><span id="capacity">Ready</span></div>
-                    <button id="generateTextBtn" class="btn btn-primary full">Generate QR Code</button>
-                    <div class="security-note"><span>🔒</span><span><b>Processed locally.</b> Your entered data is used only to generate the QR code in this browser.</span></div>
-                </div>
-
-                <div id="filePanel" class="hidden">
-                    <div class="file-drop">
-                        <div class="file-icon">↥</div>
-                        <label for="fileInput">Choose a file</label>
-                        <div class="subtitle">Photos, videos, PDFs and other files</div>
-                        <input id="fileInput" type="file">
-                        <div id="fileInfo" class="file-info"><span class="file-placeholder">No file selected</span></div>
-                    </div>
-                    <button id="connectDriveBtn" class="btn full" style="margin-top:13px">Connect My Google Drive</button>
-                    <div id="driveStatus" class="drive-status"></div>
-                    <div id="progressWrap" class="progress hidden"><div id="progressBar" class="progress-bar"></div></div>
-                    <button id="uploadBtn" class="btn btn-primary full hidden">Upload to My Drive & Generate QR</button>
-                    <div class="security-note"><span>☁</span><span><b>Your storage.</b> The selected file is uploaded to the Google Drive account you authorize.</span></div>
-                </div>
-            </section>
-
-            <section id="qrSection" class="panel result hidden">
-                <div class="result-top">
-                    <div><div class="panel-title">QR Preview</div><div class="panel-sub">Your generated code</div></div>
-                    <span class="status-pill">● READY</span>
-                </div>
-                <div class="qr-stage">
-                    <div id="emptyQr" class="empty-qr">
-                        <div class="empty-icon">⌁</div>
-                        <strong>Your QR will appear here</strong>
-                        <div>Enter data or upload a file to generate your code.</div>
-                    </div>
-                    <div id="qrcode"></div>
-                </div>
-                <div class="qr-meta">
-                    <div id="qrType" class="qr-type">QR CODE</div>
-                    <div id="qrDescription" class="qr-description">Generate a code to see details here.</div>
-                </div>
-                <div class="actions">
-                    <button id="downloadBtn" class="action main">Download PNG</button>
-                    <button id="copyBtn" class="action">Copy Data</button>
-                    <button id="shareBtn" class="action">Share</button>
-                    <button id="newBtn" class="action">New QR</button>
-                </div>
-            </section>
-        </div>
-
-        <div class="bottom-tools">
-            <button id="disconnectBtn">Disconnect Google Drive</button>
-            <button id="exitBtn">Exit</button>
-        </div>
-
-        <footer class="footer">
-            <span>Local QR Generator · Private QR creation</span>
-            <span><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a></span>
-        </footer>
-    </main>
-</section>
-
-<div id="toast" class="toast"></div>
 
 <script>
 
 const CLIENT_ID = "376360293497-39a44ah2jsqf811gfvmbasrut6ogthjb.apps.googleusercontent.com";
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+const DRIVE_SCOPE =
+    "https://www.googleapis.com/auth/drive.file";
+
 const FOLDER_NAME = "Local QR Generator";
-const QR_MAX_BYTES = 2331;
 
 let tokenClient = null;
 let accessToken = null;
 let selectedFile = null;
 let currentQRData = "";
-let googleEmail = localStorage.getItem("qr_google_email") || "";
-let savedFolderId = localStorage.getItem("qr_drive_folder_id") || "";
 
-const $ = id => document.getElementById(id);
 
-function show(id) {
-    $(id).classList.remove("hidden");
-}
+const savedEmail =
+    localStorage.getItem("qr_google_email");
 
-function hide(id) {
-    $(id).classList.add("hidden");
-}
+const savedFolderId =
+    localStorage.getItem("qr_drive_folder_id");
 
-function toast(message, type = "") {
-    const el = $("toast");
-    el.textContent = message;
-    el.className = "toast " + type + " show";
-    clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => el.classList.remove("show"), 2400);
-}
 
-function setDriveStatus(message, type = "") {
-    const el = $("driveStatus");
-    el.textContent = message;
-    el.className = "drive-status " + type;
-}
+document.getElementById("continueBtn").addEventListener("click", () => {
 
-function bytes(value) {
-    return new TextEncoder().encode(value).length;
-}
+    document.getElementById("disclaimerScreen")
+        .classList.add("hidden");
 
-function updateCapacity() {
-    const value = $("textInput").value;
-    const count = bytes(value);
-    $("byteCount").textContent = `${count.toLocaleString()} / ${QR_MAX_BYTES.toLocaleString()} bytes`;
+    document.getElementById("appScreen")
+        .classList.remove("hidden");
 
-    if (!count) {
-        $("capacity").textContent = "Ready";
-        $("capacity").className = "capacity";
-    } else if (count <= QR_MAX_BYTES) {
-        $("capacity").textContent = "Within QR capacity";
-        $("capacity").className = "capacity good";
-    } else {
-        $("capacity").textContent = "Too large";
-        $("capacity").className = "capacity bad";
+    initializeGoogle();
+
+    if (savedEmail) {
+        document.getElementById("accountStatus").textContent =
+            "Previously connected account: " + savedEmail;
     }
-}
+});
 
-function switchTab(tab) {
-    const text = tab === "text";
-    $("textTab").classList.toggle("active", text);
-    $("fileTab").classList.toggle("active", !text);
-    $("textPanel").classList.toggle("hidden", !text);
-    $("filePanel").classList.toggle("hidden", text);
-}
 
-function showApp() {
-    hide("welcomeScreen");
-    show("appScreen");
-    updateAccountUI();
-}
+document.getElementById("textTab").addEventListener("click", () => {
 
-function updateAccountUI() {
-    if (googleEmail) {
-        $("accountName").textContent = googleEmail;
-        $("accountState").textContent = accessToken ? "Drive connected" : "Google account ready";
-        $("accountDot").className = "account-dot " + (accessToken ? "online" : "");
-    } else {
-        $("accountName").textContent = "Local mode";
-        $("accountState").textContent = "Google Drive not connected";
-        $("accountDot").className = "account-dot";
+    document.getElementById("textTab").classList.add("active");
+    document.getElementById("fileTab").classList.remove("active");
+
+    document.getElementById("textPanel").classList.remove("hidden");
+    document.getElementById("filePanel").classList.add("hidden");
+});
+
+
+document.getElementById("fileTab").addEventListener("click", () => {
+
+    document.getElementById("fileTab").classList.add("active");
+    document.getElementById("textTab").classList.remove("active");
+
+    document.getElementById("textPanel").classList.add("hidden");
+    document.getElementById("filePanel").classList.remove("hidden");
+});
+
+
+document.getElementById("fileInput").addEventListener("change", event => {
+
+    selectedFile = event.target.files[0];
+
+    if (!selectedFile) {
+        document.getElementById("fileInfo").textContent =
+            "No file selected";
+
+        document.getElementById("uploadBtn")
+            .classList.add("hidden");
+
+        return;
     }
-}
+
+    const sizeMB =
+        selectedFile.size / (1024 * 1024);
+
+    document.getElementById("fileInfo").textContent =
+        `${selectedFile.name} • ${sizeMB.toFixed(2)} MB`;
+
+    if (accessToken) {
+        document.getElementById("uploadBtn")
+            .classList.remove("hidden");
+    }
+});
+
 
 function initializeGoogle() {
-    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-        setTimeout(initializeGoogle, 400);
+
+    if (!window.google || !google.accounts) {
+        setTimeout(initializeGoogle, 500);
         return;
     }
 
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: DRIVE_SCOPE,
-        callback: async response => {
-            if (response.error) {
-                setDriveStatus("Google authorization was not completed.", "error");
-                toast("Google Drive connection failed.", "error");
-                return;
-            }
+    tokenClient =
+        google.accounts.oauth2.initTokenClient({
 
-            accessToken = response.access_token;
+            client_id: CLIENT_ID,
 
-            try {
-                const profile = await fetch(
-                    "https://www.googleapis.com/oauth2/v3/userinfo",
-                    {headers: {Authorization: `Bearer ${accessToken}`}}
-                );
+            scope: DRIVE_SCOPE,
 
-                if (profile.ok) {
-                    const data = await profile.json();
-                    if (data.email) {
-                        googleEmail = data.email;
-                        localStorage.setItem("qr_google_email", googleEmail);
-                    }
+            callback: response => {
+
+                if (response.error) {
+                    setStatus(
+                        "Google authorization failed.",
+                        true
+                    );
+                    return;
                 }
-            } catch {}
 
-            updateAccountUI();
-            setDriveStatus("Your Google Drive is connected.", "success");
-            toast("Google Drive connected.");
+                accessToken =
+                    response.access_token;
 
-            if (selectedFile) {
-                show("uploadBtn");
+                document.getElementById("accountStatus")
+                    .textContent =
+                    "Google Drive connected.";
+
+                if (selectedFile) {
+                    document.getElementById("uploadBtn")
+                        .classList.remove("hidden");
+                }
             }
-        }
-    });
+
+        });
 }
 
-$("continueBtn").addEventListener("click", () => {
-    hide("welcomeScreen");
-    show("setupScreen");
-    initializeGoogle();
-});
 
-$("skipBtn").addEventListener("click", () => {
-    showApp();
-});
+document.getElementById("connectDriveBtn")
+    .addEventListener("click", () => {
 
-$("googleBtn").addEventListener("click", () => {
-    if (!tokenClient) {
-        initializeGoogle();
-        toast("Google is still loading.", "error");
-        return;
-    }
+        if (!tokenClient) {
+            setStatus(
+                "Google authentication is still loading.",
+                true
+            );
+            return;
+        }
 
-    tokenClient.requestAccessToken({
-        prompt: googleEmail ? "" : "select_account"
+        tokenClient.requestAccessToken({
+            prompt: savedFolderId ? "" : "consent"
+        });
     });
-});
 
-$("openGeneratorBtn").addEventListener("click", () => {
-    showApp();
-    setTimeout(() => $("textInput").focus(), 150);
-});
 
-$("textTab").addEventListener("click", () => switchTab("text"));
-$("fileTab").addEventListener("click", () => switchTab("file"));
+document.getElementById("generateTextBtn")
+    .addEventListener("click", () => {
 
-$("textInput").addEventListener("input", updateCapacity);
+        const value =
+            document.getElementById("textInput")
+            .value
+            .trim();
 
-$("generateTextBtn").addEventListener("click", () => {
-    const value = $("textInput").value.trim();
+        if (!value) {
+            alert("Please enter text or a URL.");
+            return;
+        }
 
-    if (!value) {
-        toast("Enter text or a URL first.", "error");
-        $("textInput").focus();
-        return;
-    }
+        generateQR(value);
 
-    if (bytes(value) > QR_MAX_BYTES) {
-        toast("That content is too large for this QR.", "error");
-        return;
-    }
-
-    generateQR(value);
-    $("qrType").textContent = "TEXT / LINK";
-    $("qrDescription").textContent = "Generated locally on your device.";
-    toast("QR code generated.", "success");
-});
-
-$("fileInput").addEventListener("change", event => {
-    selectedFile = event.target.files[0] || null;
-
-    if (!selectedFile) {
-        $("fileInfo").innerHTML = '<span class="file-placeholder">No file selected</span>';
-        hide("uploadBtn");
-        return;
-    }
-
-    const sizeMB = selectedFile.size / (1024 * 1024);
-    $("fileInfo").innerHTML =
-        `<strong>${escapeHtml(selectedFile.name)}</strong><span>${sizeMB.toFixed(2)} MB</span>`;
-
-    if (accessToken) show("uploadBtn");
-});
-
-$("connectDriveBtn").addEventListener("click", () => {
-    if (!tokenClient) {
-        initializeGoogle();
-        setDriveStatus("Google authorization is loading. Try again in a moment.", "error");
-        return;
-    }
-
-    tokenClient.requestAccessToken({
-        prompt: accessToken ? "" : "select_account"
+        document.getElementById("qrDescription")
+            .textContent =
+            "This QR was generated locally in your browser.";
     });
-});
 
-$("uploadBtn").addEventListener("click", async () => {
-    if (!selectedFile) {
-        toast("Select a file first.", "error");
-        return;
-    }
 
-    if (!accessToken) {
-        $("connectDriveBtn").click();
-        return;
-    }
+document.getElementById("uploadBtn")
+    .addEventListener("click", async () => {
 
-    try {
-        $("progressWrap").classList.remove("hidden");
-        $("progressBar").style.width = "10%";
-        setDriveStatus("Preparing your private Drive folder...", "");
+        if (!selectedFile) {
+            alert("Please select a file.");
+            return;
+        }
 
-        const folderId = await getOrCreateFolder();
+        if (!accessToken) {
+            document.getElementById("connectDriveBtn")
+                .click();
+            return;
+        }
 
-        $("progressBar").style.width = "35%";
-        setDriveStatus("Uploading to your Google Drive...", "");
+        try {
 
-        const file = await uploadFile(selectedFile, folderId);
+            setStatus("Preparing Google Drive...");
 
-        $("progressBar").style.width = "80%";
-        const fileUrl = `https://drive.google.com/file/d/${file.id}/view?usp=sharing`;
+            const folderId =
+                await getOrCreateFolder();
 
-        await makePublic(file.id);
+            setStatus("Uploading file...");
 
-        $("progressBar").style.width = "100%";
-        generateQR(fileUrl);
-        $("qrType").textContent = "GOOGLE DRIVE FILE";
-        $("qrDescription").textContent =
-            "Your file is stored in your Google Drive. The QR contains its shareable Drive link.";
-        setDriveStatus("File uploaded successfully.", "success");
-        toast("File uploaded and QR created.", "success");
+            const file =
+                await uploadFile(selectedFile, folderId);
 
-        setTimeout(() => $("progressWrap").classList.add("hidden"), 700);
-    } catch (error) {
-        console.error(error);
-        $("progressWrap").classList.add("hidden");
-        setDriveStatus(error.message || "Upload failed.", "error");
-        toast("Upload failed.", "error");
-    }
-});
+            const fileUrl =
+                `https://drive.google.com/file/d/${file.id}/view?usp=sharing`;
+
+            await makePublic(file.id);
+
+            generateQR(fileUrl);
+
+            document.getElementById("qrDescription")
+                .textContent =
+                "The QR contains the Google Drive link for your file.";
+
+            setStatus(
+                "File uploaded successfully.",
+                false
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            setStatus(
+                error.message || "Upload failed.",
+                true
+            );
+        }
+    });
+
 
 async function getOrCreateFolder() {
-    if (savedFolderId) return savedFolderId;
 
-    const query = encodeURIComponent(
-        `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
-    );
-
-    const response = await driveFetch(
-        `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`
-    );
-
-    if (response.files && response.files.length) {
-        savedFolderId = response.files[0].id;
-        localStorage.setItem("qr_drive_folder_id", savedFolderId);
+    if (savedFolderId) {
         return savedFolderId;
     }
 
-    const folder = await driveFetch(
-        "https://www.googleapis.com/drive/v3/files",
-        {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                name: FOLDER_NAME,
-                mimeType: "application/vnd.google-apps.folder"
-            })
-        }
+    const query =
+        encodeURIComponent(
+            `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
+        );
+
+    const response =
+        await driveFetch(
+            `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`
+        );
+
+    if (response.files && response.files.length) {
+
+        const folderId =
+            response.files[0].id;
+
+        localStorage.setItem(
+            "qr_drive_folder_id",
+            folderId
+        );
+
+        return folderId;
+    }
+
+
+    const metadata = {
+        name: FOLDER_NAME,
+        mimeType: "application/vnd.google-apps.folder"
+    };
+
+
+    const folder =
+        await driveFetch(
+            "https://www.googleapis.com/drive/v3/files",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(metadata)
+            }
+        );
+
+
+    localStorage.setItem(
+        "qr_drive_folder_id",
+        folder.id
     );
 
-    savedFolderId = folder.id;
-    localStorage.setItem("qr_drive_folder_id", savedFolderId);
-    return savedFolderId;
+    return folder.id;
 }
 
+
 async function uploadFile(file, folderId) {
+
     const metadata = {
         name: file.name,
         mimeType: file.type || "application/octet-stream",
         parents: [folderId]
     };
 
-    const boundary = "local_qr_generator_boundary";
 
-    const body = new Blob([
-        `--${boundary}\r\n`,
-        "Content-Type: application/json; charset=UTF-8\r\n\r\n",
-        JSON.stringify(metadata),
-        `\r\n--${boundary}\r\n`,
-        `Content-Type: ${file.type || "application/octet-stream"}\r\n\r\n`,
-        file,
-        `\r\n--${boundary}--`
-    ]);
+    const boundary =
+        "qr_generator_boundary";
 
-    const response = await fetch(
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name",
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": `multipart/related; boundary=${boundary}`
-            },
-            body
-        }
-    );
+
+    const body =
+        new Blob([
+
+            `--${boundary}\r\n`,
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n",
+            JSON.stringify(metadata),
+            `\r\n--${boundary}\r\n`,
+            `Content-Type: ${file.type || "application/octet-stream"}\r\n\r\n`,
+            file,
+            `\r\n--${boundary}--`
+
+        ]);
+
+
+    const response =
+        await fetch(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name",
+            {
+                method: "POST",
+
+                headers: {
+                    Authorization:
+                        `Bearer ${accessToken}`,
+
+                    "Content-Type":
+                        `multipart/related; boundary=${boundary}`
+                },
+
+                body
+            }
+        );
+
 
     if (!response.ok) {
-        throw new Error("Google Drive upload failed: " + await response.text());
+
+        const errorText =
+            await response.text();
+
+        throw new Error(
+            "Google Drive upload failed: " +
+            errorText
+        );
     }
+
 
     return response.json();
 }
+
 
 async function makePublic(fileId) {
-    const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}/permissions`,
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({role: "reader", type: "anyone"})
-        }
-    );
+
+    const permission = {
+        role: "reader",
+        type: "anyone"
+    };
+
+
+    const response =
+        await fetch(
+            `https://www.googleapis.com/drive/v3/files/${fileId}/permissions`,
+            {
+                method: "POST",
+
+                headers: {
+                    Authorization:
+                        `Bearer ${accessToken}`,
+
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(permission)
+            }
+        );
+
 
     if (!response.ok) {
-        throw new Error("Unable to create a shareable file link: " + await response.text());
+
+        const errorText =
+            await response.text();
+
+        throw new Error(
+            "Unable to create public file access: " +
+            errorText
+        );
     }
 }
 
+
 async function driveFetch(url, options = {}) {
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            ...(options.headers || {}),
-            Authorization: `Bearer ${accessToken}`
-        }
-    });
+
+    const response =
+        await fetch(
+            url,
+            {
+                ...options,
+
+                headers: {
+                    ...(options.headers || {}),
+                    Authorization:
+                        `Bearer ${accessToken}`
+                }
+            }
+        );
+
 
     if (response.status === 401) {
+
         accessToken = null;
-        updateAccountUI();
-        throw new Error("Google authorization expired. Reconnect Google Drive.");
+
+        throw new Error(
+            "Google authorization expired. Please reconnect Google Drive."
+        );
     }
 
-    if (!response.ok) throw new Error(await response.text());
+
+    if (!response.ok) {
+
+        const text =
+            await response.text();
+
+        throw new Error(text);
+    }
+
 
     return response.json();
 }
 
-function generateQR(data) {
-    currentQRData = data;
-    $("qrcode").innerHTML = "";
 
-    new QRCode($("qrcode"), {
-        text: data,
-        width: 280,
-        height: 280,
-        correctLevel: QRCode.CorrectLevel.M
+function generateQR(data) {
+
+    currentQRData = data;
+
+    document.getElementById("qrcode")
+        .innerHTML = "";
+
+    new QRCode(
+        document.getElementById("qrcode"),
+        {
+            text: data,
+            width: 280,
+            height: 280,
+            correctLevel:
+                QRCode.CorrectLevel.M
+        }
+    );
+
+    document.getElementById("qrSection")
+        .classList.remove("hidden");
+}
+
+
+document.getElementById("downloadBtn")
+    .addEventListener("click", () => {
+
+        const canvas =
+            document.querySelector("#qrcode canvas");
+
+        if (!canvas) {
+            alert("QR image is not ready.");
+            return;
+        }
+
+        const link =
+            document.createElement("a");
+
+        link.download =
+            "qr-code.png";
+
+        link.href =
+            canvas.toDataURL("image/png");
+
+        link.click();
     });
 
-    hide("emptyQr");
-    show("qrSection");
-    $("qrSection").scrollIntoView({behavior: "smooth", block: "center"});
+
+document.getElementById("newBtn")
+    .addEventListener("click", () => {
+
+        document.getElementById("qrSection")
+            .classList.add("hidden");
+
+        document.getElementById("textInput")
+            .value = "";
+
+        document.getElementById("fileInput")
+            .value = "";
+
+        selectedFile = null;
+
+        document.getElementById("fileInfo")
+            .textContent =
+            "No file selected";
+
+        document.getElementById("uploadBtn")
+            .classList.add("hidden");
+
+        document.getElementById("uploadStatus")
+            .textContent = "";
+
+        document.getElementById("progressContainer")
+            .classList.add("hidden");
+    });
+
+
+function setStatus(message, error = false) {
+
+    const element =
+        document.getElementById("uploadStatus");
+
+    element.textContent = message;
+
+    element.className =
+        error ? "status error" : "status success";
 }
-
-$("downloadBtn").addEventListener("click", () => {
-    const canvas = $("qrcode").querySelector("canvas");
-
-    if (!canvas) {
-        toast("Generate a QR code first.", "error");
-        return;
-    }
-
-    const link = document.createElement("a");
-    link.download = "local-qr-code.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    toast("QR image downloaded.", "success");
-});
-
-$("copyBtn").addEventListener("click", async () => {
-    if (!currentQRData) return toast("Generate a QR code first.", "error");
-
-    try {
-        await navigator.clipboard.writeText(currentQRData);
-        toast("QR data copied.", "success");
-    } catch {
-        toast("Copy is not available.", "error");
-    }
-});
-
-$("shareBtn").addEventListener("click", async () => {
-    if (!currentQRData) return toast("Generate a QR code first.", "error");
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "Local QR Code",
-                text: currentQRData
-            });
-            return;
-        } catch {}
-    }
-
-    try {
-        await navigator.clipboard.writeText(currentQRData);
-        toast("Share unavailable. Data copied.", "success");
-    } catch {
-        toast("Sharing is not available.", "error");
-    }
-});
-
-$("newBtn").addEventListener("click", () => {
-    currentQRData = "";
-    selectedFile = null;
-    $("textInput").value = "";
-    $("fileInput").value = "";
-    $("fileInfo").innerHTML = '<span class="file-placeholder">No file selected</span>';
-    $("uploadBtn").classList.add("hidden");
-    $("qrSection").classList.add("hidden");
-    $("uploadStatus").textContent = "";
-    $("driveStatus").textContent = "";
-    updateCapacity();
-    switchTab("text");
-    $("textInput").focus();
-});
-
-$("disconnectBtn").addEventListener("click", () => {
-    if (accessToken && window.google?.accounts?.oauth2) {
-        google.accounts.oauth2.revoke(accessToken, () => {});
-    }
-
-    accessToken = null;
-    googleEmail = "";
-    savedFolderId = "";
-    localStorage.removeItem("qr_google_email");
-    localStorage.removeItem("qr_drive_folder_id");
-
-    updateAccountUI();
-    hide("uploadBtn");
-    setDriveStatus("Google Drive disconnected.", "");
-    toast("Google Drive disconnected.");
-});
-
-$("exitBtn").addEventListener("click", () => {
-    accessToken = null;
-    show("welcomeScreen");
-    hide("appScreen");
-    hide("setupScreen");
-});
-
-$("backToWelcome").addEventListener("click", () => {
-    show("welcomeScreen");
-    hide("setupScreen");
-});
-
-$("backToApp").addEventListener("click", () => {
-    showApp();
-});
-
-function escapeHtml(value) {
-    return value.replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    }[char]));
-}
-
-updateCapacity();
 
 </script>
+
 </body>
 </html>
