@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Local QR Generator — Free QR Code Creator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root{
+    --bg:#070b14;
+    --bg2:#0c1220;
+    --panel:rgba(16,23,38,.82);
+    --panel2:rgba(20,29,48,.9);
+    --line:rgba(148,163,184,.16);
+    --line2:rgba(96,165,250,.28);
+    --text:#f8fafc;
+    --muted:#94a3b8;
+    --blue:#60a5fa;
+    --cyan:#22d3ee;
+    --green:#34d399;
+    --purple:#a78bfa;
+    --danger:#fb7185;
+    --shadow:0 24px 80px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+    margin:0;
+    min-height:100vh;
+    color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%,rgba(59,130,246,.16),transparent 30%),
+      radial-gradient(circle at 88% 18%,rgba(139,92,246,.13),transparent 28%),
+      radial-gradient(circle at 50% 100%,rgba(34,211,238,.08),transparent 34%),
+      var(--bg);
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hidden{display:none!important}
+.app-shell{min-height:100vh}
+.topbar{
+    position:sticky;top:0;z-index:50;
+    height:68px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(18px,4vw,56px);
+    background:rgba(7,11,20,.74);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(18px);
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.02em}
+.brand-mark{
+    width:38px;height:38px;border-radius:11px;
+    display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    box-shadow:0 8px 28px rgba(96,165,250,.22);
+}
+.brand-mark svg{width:21px;height:21px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.top-link{
+    color:#cbd5e1;text-decoration:none;
+    padding:9px 12px;border-radius:9px;font-size:14px;
+}
+.top-link:hover{background:rgba(148,163,184,.1);color:#fff}
+.hero{
+    width:min(1180px,calc(100% - 32px));
+    margin:0 auto;
+    padding:72px 0 34px;
+    display:grid;grid-template-columns:1.15fr .85fr;gap:42px;align-items:center;
+}
+.eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 11px;border:1px solid rgba(96,165,250,.2);
+    background:rgba(59,130,246,.08);border-radius:999px;
+    color:#bfdbfe;font-size:13px;font-weight:700;
+}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(52,211,153,.1)}
+.hero h1{
+    margin:18px 0 14px;
+    font-size:clamp(42px,6vw,72px);
+    line-height:.98;letter-spacing:-.055em;
+}
+.gradient-text{
+    background:linear-gradient(100deg,#fff 15%,#93c5fd 55%,#c4b5fd 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-copy{max-width:680px;color:var(--muted);font-size:18px;line-height:1.7}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{
+    border:1px solid var(--line);border-radius:12px;
+    padding:12px 17px;color:#fff;background:rgba(30,41,59,.72);
+    transition:.2s transform,.2s background,.2s border-color;
+}
+.btn:hover{transform:translateY(-2px);background:rgba(51,65,85,.9);border-color:var(--line2)}
+.btn-primary{
+    border:0;background:linear-gradient(135deg,#3b82f6,#7c3aed);
+    box-shadow:0 12px 30px rgba(59,130,246,.2);
+}
+.btn-primary:hover{background:linear-gradient(135deg,#60a5fa,#8b5cf6)}
+.hero-visual{
+    min-height:360px;position:relative;display:grid;place-items:center;
+}
+.orbit{
+    position:absolute;width:300px;height:300px;border-radius:50%;
+    border:1px solid rgba(96,165,250,.16);
+    box-shadow:0 0 100px rgba(59,130,246,.08);
+}
+.orbit:before,.orbit:after{
+    content:"";position:absolute;border-radius:50%;
+    border:1px solid rgba(167,139,250,.12);
+}
+.orbit:before{inset:30px}
+.orbit:after{inset:65px}
+.mock-qr{
+    position:relative;z-index:2;
+    width:230px;height:230px;border-radius:26px;
+    background:#fff;padding:24px;
+    box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 80px rgba(96,165,250,.16);
+}
+.mock-grid{
+    width:100%;height:100%;
+    background:
+      linear-gradient(90deg,#0b1220 12%,transparent 12% 22%,#0b1220 22% 30%,transparent 30% 43%,#0b1220 43% 52%,transparent 52% 62%,#0b1220 62% 75%,transparent 75% 86%,#0b1220 86%),
+      linear-gradient(#0b1220 12%,transparent 12% 24%,#0b1220 24% 34%,transparent 34% 47%,#0b1220 47% 59%,transparent 59% 70%,#0b1220 70% 82%,transparent 82% 90%,#0b1220 90%);
+    opacity:.92;
+}
+.float-card{
+    position:absolute;z-index:3;padding:12px 14px;
+    background:rgba(15,23,42,.88);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(12px);
+    font-size:13px;color:#dbeafe;
+}
+.float-one{top:40px;right:0}
+.float-two{bottom:42px;left:0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:7px}
+.workspace{
+    width:min(1040px,calc(100% - 32px));margin:0 auto 34px;
+    display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:18px;
+}
+.panel{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:22px;box-shadow:var(--shadow);
+    backdrop-filter:blur(18px);
+}
+.generator{padding:22px}
+.panel-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:18px}
+.panel-title{font-size:21px;font-weight:800;letter-spacing:-.025em}
+.panel-sub{color:var(--muted);font-size:13px;margin-top:5px}
+.mode-switch{
+    display:grid;grid-template-columns:1fr 1fr;gap:5px;
+    padding:5px;background:#0a101d;border:1px solid var(--line);border-radius:14px;
+    margin-bottom:20px;
+}
+.mode{
+    border:0;background:transparent;color:#94a3b8;border-radius:10px;
+    padding:11px 12px;font-weight:700;
+}
+.mode.active{color:#fff;background:linear-gradient(135deg,rgba(59,130,246,.28),rgba(124,58,237,.2));box-shadow:inset 0 0 0 1px rgba(96,165,250,.18)}
+.input-wrap{position:relative}
+textarea,input[type=url]{
+    width:100%;outline:none;color:#fff;
+    background:#080e19;border:1px solid var(--line);
+    border-radius:15px;padding:16px;
+    transition:.2s border-color,.2s box-shadow;
+}
+textarea{min-height:170px;resize:vertical;line-height:1.55}
+textarea:focus,input[type=url]:focus{border-color:rgba(96,165,250,.65);box-shadow:0 0 0 4px rgba(59,130,246,.09)}
+textarea::placeholder,input::placeholder{color:#64748b}
+.counter-row{display:flex;justify-content:space-between;gap:12px;margin:9px 2px 16px;font-size:12px;color:#64748b}
+.capacity.ok{color:var(--green)}.capacity.bad{color:var(--danger)}
+.generate{
+    width:100%;border:0;border-radius:13px;padding:14px 18px;
+    color:#fff;font-weight:800;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    box-shadow:0 12px 30px rgba(37,99,235,.18);
+}
+.generate:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.helper{
+    margin-top:12px;padding:12px 14px;border-radius:12px;
+    background:rgba(15,23,42,.72);border:1px solid var(--line);
+    color:#94a3b8;font-size:12px;line-height:1.5;
+}
+.provider-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.provider{
+    border:1px solid var(--line);background:rgba(15,23,42,.7);
+    border-radius:12px;padding:10px;text-align:center;color:#cbd5e1;font-size:12px;
+    transition:.2s;
+}
+.provider:hover{border-color:rgba(96,165,250,.35);transform:translateY(-2px)}
+.result{
+    padding:22px;display:flex;flex-direction:column;min-height:100%;
+}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.live-badge{
+    padding:6px 9px;border-radius:999px;background:rgba(52,211,153,.09);
+    color:#86efac;font-size:11px;font-weight:800;
+}
+.qr-stage{
+    margin:20px 0;padding:22px;min-height:350px;display:grid;place-items:center;
+    border-radius:18px;background:
+      radial-gradient(circle at 50% 35%,rgba(96,165,250,.11),transparent 42%),
+      #080d17;border:1px solid var(--line);
+}
+#qrcode{background:#fff;padding:15px;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.35);line-height:0}
+.empty-result{text-align:center;color:#64748b;max-width:240px;line-height:1.6}
+.empty-icon{
+    width:72px;height:72px;margin:0 auto 14px;border-radius:20px;
+    display:grid;place-items:center;background:rgba(96,165,250,.08);
+    border:1px solid rgba(96,165,250,.16);color:#93c5fd;
+}
+.result-description{font-size:13px;color:#94a3b8;line-height:1.55;text-align:center;min-height:42px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.action{
+    border:1px solid var(--line);background:#111827;color:#fff;
+    border-radius:11px;padding:11px;font-weight:700;
+}
+.action:hover{border-color:rgba(96,165,250,.35)}
+.action.main-action{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0}
+.features{
+    width:min(1040px,calc(100% - 32px));margin:0 auto 30px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+}
+.feature{
+    padding:20px;border-radius:18px;background:rgba(15,23,42,.58);
+    border:1px solid var(--line);
+}
+.feature-icon{
+    width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+    background:rgba(96,165,250,.1);color:#93c5fd;margin-bottom:14px;
+}
+.feature h3{margin:0 0 7px;font-size:15px}.feature p{margin:0;color:#8492a6;font-size:13px;line-height:1.55}
+.footer{
+    width:min(1040px,calc(100% - 32px));margin:0 auto;
+    padding:25px 0 38px;display:flex;justify-content:space-between;gap:20px;align-items:center;
+    border-top:1px solid var(--line);color:#64748b;font-size:12px;
+}
+.footer-links{display:flex;gap:16px}.footer a{color:#94a3b8;text-decoration:none}.footer a:hover{color:#fff}
+.toast{
+    position:fixed;left:50%;bottom:24px;z-index:100;
+    transform:translate(-50%,20px);opacity:0;pointer-events:none;
+    background:#111827;border:1px solid var(--line);color:#fff;
+    padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;
+    transition:.25s;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){
+    .hero{grid-template-columns:1fr;padding-top:46px}
+    .hero-visual{display:none}
+    .workspace{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+    .topbar{padding:0 15px}.top-link{display:none}
+    .hero,.workspace,.features,.footer{width:min(100% - 22px,1040px)}
+    .hero h1{font-size:46px}
+    .hero-copy{font-size:16px}
+    .features{grid-template-columns:1fr}
+    .footer{align-items:flex-start;flex-direction:column}
+    .provider-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+
+</head>
+<body>
+
+<div class="app-shell">
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/>
+            </svg>
+        </div>
+        <span>Local QR Generator</span>
+    </div>
+    <nav class="top-actions">
+        <a class="top-link" href="qr-privacy.html" target="_blank" rel="noopener">Privacy</a>
+        <a class="top-link" href="qr-terms.html" target="_blank" rel="noopener">Terms</a>
+    </nav>
+</header>
+
+<main>
+<section class="hero">
+    <div>
+        <span class="eyebrow"><span class="pulse"></span> Private • Fast • Browser-based</span>
+        <h1>Turn anything into a <span class="gradient-text">QR code.</span></h1>
+        <p class="hero-copy">
+            Create QR codes instantly in your browser. Text and links stay on your device.
+            For large files, use your own cloud share link — we never need to upload your file.
+        </p>
+        <div class="hero-actions">
+            <button class="btn btn-primary" id="heroStartBtn">Create a QR code →</button>
+            <button class="btn" id="heroInfoBtn">How it works</button>
+        </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+        <div class="orbit"></div>
+        <div class="mock-qr"><div class="mock-grid"></div></div>
+        <div class="float-card float-one"><span class="dot"></span>Runs in your browser</div>
+        <div class="float-card float-two">No account required</div>
+    </div>
+</section>
+
+<section class="workspace" id="generator">
+    <div class="panel generator">
+        <div class="panel-head">
+            <div>
+                <div class="panel-title">Create your QR</div>
+                <div class="panel-sub">Choose a format and generate instantly.</div>
+            </div>
+        </div>
+
+        <div class="mode-switch">
+            <button id="textTab" class="mode active">✦ Text / Data</button>
+            <button id="fileTab" class="mode">↗ Large File URL</button>
+        </div>
+
+        <div id="textPanel">
+            <label for="textInput">What do you want to encode?</label>
+            <textarea id="textInput" placeholder="Paste text, website URL, contact details, Wi-Fi information, a message..."></textarea>
+            <div class="counter-row">
+                <span id="textCounter">0 / 2,331 bytes</span>
+                <span id="capacityStatus" class="capacity">Start typing to check capacity</span>
+            </div>
+            <button id="generateTextBtn" class="generate">Generate QR Code</button>
+            <div class="helper">Everything above is processed locally by your browser. Nothing is sent to an application server.</div>
+        </div>
+
+        <div id="filePanel" class="hidden">
+            <div class="helper" style="margin-top:0">
+                <strong>Large file?</strong> Upload it to your own Google Drive, OneDrive, Dropbox or another storage service. Copy its shareable URL and paste it below. This website never uploads or stores the file.
+            </div>
+            <br>
+            <label for="fileUrlInput">Your shareable file URL</label>
+            <input id="fileUrlInput" type="url" placeholder="https://drive.google.com/...">
+            <div id="fileUrlStatus" class="status">Only the URL will be encoded into the QR.</div>
+            <button id="generateUrlBtn" class="generate" style="margin-top:16px">Generate QR From URL</button>
+
+            <div class="provider-grid">
+                <div class="provider">Google Drive</div>
+                <div class="provider">OneDrive</div>
+                <div class="provider">Dropbox</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel result">
+        <div class="result-head">
+            <div>
+                <div class="panel-title">Live preview</div>
+                <div class="panel-sub">Your QR appears here.</div>
+            </div>
+            <span class="live-badge">● READY</span>
+        </div>
+        <div class="qr-stage" id="qrStage">
+            <div class="empty-result" id="emptyResult">
+                <div class="empty-icon">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM15 14h1v1h-1zM18 14h2v6h-2zM14 18h2v2h-2z"/>
+                    </svg>
+                </div>
+                <strong>Your QR is waiting</strong>
+                <div>Enter something on the left and your generated code will appear here.</div>
+            </div>
+            <div id="qrcode" class="hidden"></div>
+        </div>
+        <div id="qrDescription" class="result-description">No data generated yet.</div>
+        <div class="result-actions">
+            <button id="copyBtn" class="action">Copy data</button>
+            <button id="downloadBtn" class="action main-action">Download PNG</button>
+            <button id="shareBtn" class="action">Share</button>
+            <button id="newBtn" class="action">Clear & start again</button>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <article class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant generation</h3>
+        <p>No account, upload step or waiting queue. Generate directly from your browser.</p>
+    </article>
+    <article class="feature">
+        <div class="feature-icon">⌁</div>
+        <h3>Large-file friendly</h3>
+        <p>Use a share URL from your preferred cloud provider when the actual file is too large for a QR.</p>
+    </article>
+    <article class="feature">
+        <div class="feature-icon">◈</div>
+        <h3>Privacy-first design</h3>
+        <p>The application does not need a server to receive or store the QR data you enter.</p>
+    </article>
+</section>
+</main>
+
+<footer class="footer">
+    <span>Local QR Generator · Free to use</span>
+    <div class="footer-links">
+        <a href="qr-privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+        <a href="qr-terms.html" target="_blank" rel="noopener">Terms of Service</a>
+    </div>
+</footer>
+</div>
+
+<div id="toast" class="toast"></div>
+
+
+<script>
+const QR_MAX_BYTES_M = 2331;
+let currentQRData = "";
+
+const textInput = document.getElementById("textInput");
+const textCounter = document.getElementById("textCounter");
+const capacityStatus = document.getElementById("capacityStatus");
+const fileUrlInput = document.getElementById("fileUrlInput");
+const fileUrlStatus = document.getElementById("fileUrlStatus");
+const qrSection = document.getElementById("qrStage");
+const qrcode = document.getElementById("qrcode");
+const emptyResult = document.getElementById("emptyResult");
+const qrDescription = document.getElementById("qrDescription");
+const toast = document.getElementById("toast");
+
+function utf8Bytes(value) {
+    return new TextEncoder().encode(value).length;
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function updateTextCapacity() {
+    const bytes = utf8Bytes(textInput.value);
+    textCounter.textContent = `${bytes.toLocaleString()} / ${QR_MAX_BYTES_M.toLocaleString()} bytes`;
+
+    if (!bytes) {
+        capacityStatus.textContent = "Start typing to check capacity";
+        capacityStatus.className = "capacity";
+    } else if (bytes <= QR_MAX_BYTES_M) {
+        capacityStatus.textContent = "✓ Within QR capacity";
+        capacityStatus.className = "capacity ok";
+    } else {
+        capacityStatus.textContent = "Too large — use a file URL";
+        capacityStatus.className = "capacity bad";
+    }
+}
+
+function switchMode(mode) {
+    const textMode = mode === "text";
+    document.getElementById("textTab").classList.toggle("active", textMode);
+    document.getElementById("fileTab").classList.toggle("active", !textMode);
+    document.getElementById("textPanel").classList.toggle("hidden", !textMode);
+    document.getElementById("filePanel").classList.toggle("hidden", textMode);
+}
+
+document.getElementById("textTab").addEventListener("click", () => switchMode("text"));
+document.getElementById("fileTab").addEventListener("click", () => switchMode("file"));
+
+document.getElementById("heroStartBtn").addEventListener("click", () => {
+    document.getElementById("generator").scrollIntoView({behavior:"smooth", block:"center"});
+    setTimeout(() => textInput.focus(), 450);
+});
+
+document.getElementById("heroInfoBtn").addEventListener("click", () => {
+    document.getElementById("generator").scrollIntoView({behavior:"smooth", block:"center"});
+});
+
+textInput.addEventListener("input", updateTextCapacity);
+updateTextCapacity();
+
+document.getElementById("generateTextBtn").addEventListener("click", () => {
+    const value = textInput.value.trim();
+    if (!value) {
+        showToast("Enter some text or a link first.");
+        textInput.focus();
+        return;
+    }
+
+    if (utf8Bytes(value) > QR_MAX_BYTES_M) {
+        showToast("That data is too large for this QR capacity.");
+        return;
+    }
+
+    generateQR(value);
+    qrDescription.textContent = "Generated locally in your browser. No QR data was uploaded by this website.";
+    showToast("QR code generated.");
+});
+
+document.getElementById("generateUrlBtn").addEventListener("click", () => {
+    const value = fileUrlInput.value.trim();
+    if (!value) {
+        showToast("Paste a shareable file URL first.");
+        fileUrlInput.focus();
+        return;
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(value);
+    } catch {
+        showToast("Please enter a valid HTTP or HTTPS URL.");
+        return;
+    }
+
+    if (!["http:","https:"].includes(parsed.protocol)) {
+        showToast("Only HTTP and HTTPS URLs are supported.");
+        return;
+    }
+
+    if (utf8Bytes(value) > QR_MAX_BYTES_M) {
+        showToast("This URL is too long for this QR capacity.");
+        return;
+    }
+
+    generateQR(value);
+    fileUrlStatus.textContent = "✓ QR generated. Your file was not uploaded or stored here.";
+    fileUrlStatus.className = "status success";
+    qrDescription.textContent = "The QR contains your shareable file URL. The file remains with your chosen storage provider.";
+    showToast("File-link QR generated.");
+});
+
+function generateQR(data) {
+    currentQRData = data;
+    qrcode.innerHTML = "";
+    qrcode.classList.remove("hidden");
+    emptyResult.classList.add("hidden");
+
+    new QRCode(qrcode, {
+        text: data,
+        width: 280,
+        height: 280,
+        correctLevel: QRCode.CorrectLevel.M
+    });
+
+    qrSection.scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+    const canvas = qrcode.querySelector("canvas");
+    if (!canvas || !currentQRData) {
+        showToast("Generate a QR code first.");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.download = "local-qr-code.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    showToast("QR image downloaded.");
+});
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+    if (!currentQRData) {
+        showToast("Generate a QR code first.");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(currentQRData);
+        showToast("QR data copied.");
+    } catch {
+        showToast("Copy is not available in this browser.");
+    }
+});
+
+document.getElementById("shareBtn").addEventListener("click", async () => {
+    if (!currentQRData) {
+        showToast("Generate a QR code first.");
+        return;
+    }
+
+    if (navigator.share) {
+        try {
+            await navigator.share({title:"Local QR Code", text:currentQRData});
+            return;
+        } catch {}
+    }
+
+    try {
+        await navigator.clipboard.writeText(currentQRData);
+        showToast("Share unavailable — data copied instead.");
+    } catch {
+        showToast("Sharing is not available in this browser.");
+    }
+});
+
+document.getElementById("newBtn").addEventListener("click", () => {
+    currentQRData = "";
+    qrcode.innerHTML = "";
+    qrcode.classList.add("hidden");
+    emptyResult.classList.remove("hidden");
+    qrDescription.textContent = "No data generated yet.";
+    textInput.value = "";
+    fileUrlInput.value = "";
+    fileUrlStatus.textContent = "Only the URL will be encoded into the QR.";
+    fileUrlStatus.className = "status";
+    updateTextCapacity();
+    switchMode("text");
+    document.getElementById("generator").scrollIntoView({behavior:"smooth", block:"center"});
+    setTimeout(() => textInput.focus(), 450);
+    showToast("Ready for your next QR.");
+});
+</script>
+
+</body>
+</html>
