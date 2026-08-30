@@ -543,15 +543,29 @@ function generateQR(data) {
 
 document.getElementById("downloadBtn").addEventListener("click", () => {
     const canvas = qrcode.querySelector("canvas");
+
     if (!canvas || !currentQRData) {
         showToast("Generate a QR code first.");
         return;
     }
 
+    const padding = 40;
+    const outputCanvas = document.createElement("canvas");
+    const ctx = outputCanvas.getContext("2d");
+
+    outputCanvas.width = canvas.width + padding * 2;
+    outputCanvas.height = canvas.height + padding * 2;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+    ctx.drawImage(canvas, padding, padding);
+
     const link = document.createElement("a");
     link.download = "local-qr-code.png";
-    link.href = canvas.toDataURL("image/png");
+    link.href = outputCanvas.toDataURL("image/png");
     link.click();
+
     showToast("QR image downloaded.");
 });
 
@@ -572,22 +586,70 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
 document.getElementById("shareBtn").addEventListener("click", async () => {
     if (!currentQRData) {
         showToast("Generate a QR code first.");
+        return;document.getElementById("shareBtn").addEventListener("click", async () => {
+    const canvas = qrcode.querySelector("canvas");
+
+    if (!canvas || !currentQRData) {
+        showToast("Generate a QR code first.");
         return;
     }
 
-    if (navigator.share) {
-        try {
-            await navigator.share({title:"Local QR Code", text:currentQRData});
-            return;
-        } catch {}
-    }
+    const padding = 40;
+    const outputCanvas = document.createElement("canvas");
+    const ctx = outputCanvas.getContext("2d");
 
-    try {
-        await navigator.clipboard.writeText(currentQRData);
-        showToast("Share unavailable — data copied instead.");
-    } catch {
-        showToast("Sharing is not available in this browser.");
-    }
+    outputCanvas.width = canvas.width + padding * 2;
+    outputCanvas.height = canvas.height + padding * 2;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+    ctx.drawImage(canvas, padding, padding);
+
+    outputCanvas.toBlob(async (blob) => {
+        if (!blob) {
+            showToast("Unable to create QR image.");
+            return;
+        }
+
+        const file = new File([blob], "local-qr-code.png", {
+            type: "image/png"
+        });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {
+            try {
+                await navigator.share({
+                    title: "Local QR Code",
+                    files: [file]
+                });
+                return;
+            } catch (error) {
+                if (error.name === "AbortError") return;
+            }
+        }
+
+        if (navigator.clipboard && window.ClipboardItem) {
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        "image/png": blob
+                    })
+                ]);
+
+                showToast("QR image copied to clipboard.");
+                return;
+            } catch {}
+        }
+
+        const link = document.createElement("a");
+        link.download = "local-qr-code.png";
+        link.href = URL.createObjectURL(blob);
+        link.click();
+
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+
+        showToast("QR image downloaded.");
+    }, "image/png");
 });
 
 document.getElementById("newBtn").addEventListener("click", () => {
