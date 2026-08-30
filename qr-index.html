@@ -584,9 +584,6 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("shareBtn").addEventListener("click", async () => {
-    if (!currentQRData) {
-        showToast("Generate a QR code first.");
-        return;document.getElementById("shareBtn").addEventListener("click", async () => {
     const canvas = qrcode.querySelector("canvas");
 
     if (!canvas || !currentQRData) {
