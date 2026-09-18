@@ -147,8 +147,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .float-two{bottom:42px;left:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:7px}
 .workspace{
-    width:min(1040px,calc(100% - 32px));margin:0 auto 34px;
-    display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:18px;
+    width:min(1040px,calc(100% - 32px));
+    margin:0 auto 34px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
 }
 .panel{
     background:var(--panel);border:1px solid var(--line);
@@ -437,9 +440,9 @@ textarea::placeholder,input::placeholder{color:#64748b}
             <div class="block-title">Frame</div>
             <div class="segmented" id="frameChoices">
               <button class="choice active" data-frame="none">None</button>
-              <button class="choice" data-frame="scan">Scan Me</button>
               <button class="choice" data-frame="payment">Payment</button>
               <button class="choice" data-frame="website">Website</button>
+              <button class="choice" data-frame="scan">Custom</button>
             </div>
             <div class="field-row frame-fields">
               <label class="field"><span>Title</span><input id="frameTitle" value="Scan Me" placeholder="Scan Me"></label>
@@ -461,14 +464,14 @@ textarea::placeholder,input::placeholder{color:#64748b}
     </div>
   </div>
 
-  <div class="panel result">
-    <div class="result-head">
-      <div>
-        <div class="panel-title">Live preview</div>
-        <div class="panel-sub">Your customized QR appears here.</div>
-      </div>
-      <span class="live-badge" id="liveBadge">● READY</span>
-    </div>
+  <div class="panel result hidden" id="resultPanel">
+   <div class="result-head">
+  <div>
+    <div class="panel-title">QR Preview</div>
+    <div class="panel-sub">Your customized QR appears here.</div>
+  </div>
+  <span class="live-badge" id="liveBadge">● READY</span>
+</div>
 
     <div class="preview-toolbar">
       <span id="previewType">TEXT</span>
@@ -498,8 +501,6 @@ textarea::placeholder,input::placeholder{color:#64748b}
       <button id="downloadSvgBtn" class="action">SVG</button>
     </div>
     <div class="result-actions">
-      <button id="copyBtn" class="action">Copy data</button>
-      <button id="copyImageBtn" class="action">Copy image</button>
       <button id="shareBtn" class="action">Share</button>
       <button id="newBtn" class="action">Clear</button>
     </div>
@@ -554,6 +555,8 @@ const typePanel = document.getElementById("typePanel");
 const liveBadge = document.getElementById("liveBadge");
 const previewType = document.getElementById("previewType");
 const previewStatus = document.getElementById("previewStatus");
+const resultPanel = document.getElementById("resultPanel");
+
 
 const templates = {
 text:`<div class="dynamic-card"><div class="dynamic-title">What do you want to encode?</div><div class="fields"><label class="field"><span>Text or message</span><textarea id="textInput" placeholder="Paste text, contact details, a message or any data..."></textarea></label><div class="field-help" id="textHelp">Maximum QR payload depends on the selected error correction.</div></div></div>`,
@@ -586,8 +589,8 @@ function renderType(type){
 }
 function bindInputs(){
   document.querySelectorAll("#typePanel input,#typePanel textarea,#typePanel select").forEach(el=>{
-    el.addEventListener("input",()=>{if(currentType!=="image") generatePreview(true)});
-    el.addEventListener("change",()=>{if(currentType!=="image") generatePreview(true)});
+    el.addEventListener("input",()=>{});
+    el.addEventListener("change",()=>{});
   });
 }
 function buildData(){
@@ -702,11 +705,13 @@ async function generatePreview(silent){
     if(!data)throw new Error("Enter the required information first.");
     if(utf8Bytes(data)>QR_MAX_BYTES)throw new Error("This data is too large for QR capacity.");
     currentQRData=data; renderResult(drawStyledQR(data));
-  }catch(e){
-    liveBadge.textContent="● READY";previewStatus.textContent="Waiting for data";
-    if(!silent)showToast(e.message||"Unable to generate this QR.");
-  }
-}
+    resultPanel.classList.remove("hidden");
+    resultPanel.scrollIntoView({behavior:"smooth",block:"center"});
+      }catch(e){
+        liveBadge.textContent="● READY";previewStatus.textContent="Waiting for data";
+        if(!silent)showToast(e.message||"Unable to generate this QR.");
+      }
+    }
 document.querySelectorAll(".type-card").forEach(b=>b.addEventListener("click",()=>renderType(b.dataset.type)));
 document.querySelectorAll("#frameChoices .choice").forEach(b=>b.addEventListener("click",()=>{
   selectedFrame=b.dataset.frame;document.querySelectorAll("#frameChoices .choice").forEach(x=>x.classList.toggle("active",x===b));
@@ -717,8 +722,7 @@ document.querySelectorAll("#frameChoices .choice").forEach(b=>b.addEventListener
 }));
 ["qrDark","qrLight","logoSize","logoPadding","logoWhiteBox","frameTitle","frameSubtitle","qrSize","errorCorrection"].forEach(id=>{
   const el=document.getElementById(id);
-  el.addEventListener("input",()=>{if(id==="logoSize")document.getElementById("logoSizeValue").textContent=el.value+"%";if(id==="logoPadding")document.getElementById("logoPaddingValue").textContent=el.value;if(currentQRData)generatePreview(true)});
-  el.addEventListener("change",()=>{if(currentQRData)generatePreview(true)});
+  el.addEventListener("input",()=>{if(id==="logoSize")document.getElementById("logoSizeValue").textContent=el.value+"%";if(id==="logoPadding")document.getElementById("logoPaddingValue").textContent=el.value});
 });
 document.getElementById("customToggle").addEventListener("click",()=>{
   const body=document.getElementById("customBody"),btn=document.getElementById("customToggle"),hide=!body.classList.contains("hidden");
@@ -729,19 +733,44 @@ document.getElementById("logoInput").addEventListener("change",e=>{
   if(file.size>5*1024*1024){showToast("Logo must be 5 MB or smaller.");e.target.value="";return}
   const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{logoImage=img;const p=document.getElementById("logoPreview");p.src=reader.result;p.classList.remove("hidden");if(currentQRData)generatePreview(true)};img.src=reader.result};reader.readAsDataURL(file);
 });
-document.getElementById("generateBtn").addEventListener("click",()=>generatePreview(false));
+document.getElementById("generateBtn").addEventListener("click",()=>{
+  generatePreview(false);
+});
 
 function exportCanvas(){const c=qrOutput.querySelector("canvas");if(!c||!currentQRData){showToast("Generate a QR code first.");return null}return c}
 function downloadCanvas(type,ext){
-  const c=exportCanvas();if(!c)return;window.open("https://youtu.be/5EvMosK0Rwc?si=Vt62e40KfmL77cP7","_blank");
+  const c=exportCanvas();
+  if(!c)return;window.open("https://youtu.be/5EvMosK0Rwc?si=Vt62e40KfmL77cP7","_blank");
+
+  const title=selectedFrame!=="none"?(document.getElementById("frameTitle").value.trim()||(selectedFrame==="payment"?"Scan to Pay":selectedFrame==="website"?"Visit Website":"Scan Me")):"";
+  const subtitle=selectedFrame!=="none"?document.getElementById("frameSubtitle").value.trim():"";
+
+  const textSpace=selectedFrame!=="none"?(subtitle?70:45):0;
   const pad=Math.max(24,Math.round(c.width*.04));
   const out=document.createElement("canvas");
   out.width=c.width+pad*2;
-  out.height=c.height+pad*2;
+  out.height=c.height+pad*2+textSpace;
+
   const ctx=out.getContext("2d");
   ctx.fillStyle=document.getElementById("qrLight").value;
   ctx.fillRect(0,0,out.width,out.height);
+
   ctx.drawImage(c,pad,pad);
+
+  if(selectedFrame!=="none"){
+    const dark=document.getElementById("qrDark").value;
+    ctx.textAlign="center";
+    ctx.fillStyle=dark;
+
+    ctx.font="bold "+Math.max(24,Math.round(c.width*.035))+"px Arial";
+    ctx.fillText(title,out.width/2,c.height+pad+Math.max(30,Math.round(c.width*.05)));
+
+    if(subtitle){
+      ctx.font=Math.max(16,Math.round(c.width*.022))+"px Arial";
+      ctx.fillText(subtitle,out.width/2,c.height+pad+Math.max(52,Math.round(c.width*.075)));
+    }
+  }
+
   const a=document.createElement("a");
   a.download="local-qr-code."+ext;
   a.href=out.toDataURL(type,.95);
@@ -752,13 +781,37 @@ document.getElementById("downloadPngBtn").addEventListener("click",()=>downloadC
 document.getElementById("downloadJpgBtn").addEventListener("click",()=>downloadCanvas("image/jpeg","jpg"));
 document.getElementById("downloadWebpBtn").addEventListener("click",()=>downloadCanvas("image/webp","webp"));
 document.getElementById("downloadSvgBtn").addEventListener("click",()=>{
-  const c=exportCanvas();if(!c)return;window.open("https://youtu.be/5EvMosK0Rwc?si=Vt62e40KfmL77cP7","_blank");
+  const c=exportCanvas();
+  if(!c)return;
+  window.open("https://youtu.be/5EvMosK0Rwc?si=Vt62e40KfmL77cP7","_blank");
+
+  const title=selectedFrame!=="none"?(document.getElementById("frameTitle").value.trim()||(selectedFrame==="payment"?"Scan to Pay":selectedFrame==="website"?"Visit Website":"Scan Me")):"";
+  const subtitle=selectedFrame!=="none"?document.getElementById("frameSubtitle").value.trim():"";
+
+  const textSpace=selectedFrame!=="none"?(subtitle?70:45):0;
   const pad=Math.max(24,Math.round(c.width*.04));
   const width=c.width+pad*2;
-  const height=c.height+pad*2;
+  const height=c.height+pad*2+textSpace;
   const data=c.toDataURL("image/png");
   const bg=document.getElementById("qrLight").value;
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'" viewBox="0 0 '+width+' '+height+'"><rect width="'+width+'" height="'+height+'" fill="'+bg+'"/><image href="'+data+'" x="'+pad+'" y="'+pad+'" width="'+c.width+'" height="'+c.height+'"/></svg>';
+  const dark=document.getElementById("qrDark").value;
+
+  let text="";
+  if(selectedFrame!=="none"){
+    const titleY=c.height+pad+Math.max(30,Math.round(c.width*.05));
+    const subtitleY=c.height+pad+Math.max(52,Math.round(c.width*.075));
+    const titleSize=Math.max(24,Math.round(c.width*.035));
+    const subtitleSize=Math.max(16,Math.round(c.width*.022));
+
+    text='<text x="'+width/2+'" y="'+titleY+'" text-anchor="middle" font-family="Arial" font-size="'+titleSize+'" font-weight="bold" fill="'+dark+'">'+title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</text>';
+
+    if(subtitle){
+      text+='<text x="'+width/2+'" y="'+subtitleY+'" text-anchor="middle" font-family="Arial" font-size="'+subtitleSize+'" fill="'+dark+'">'+subtitle.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</text>';
+    }
+  }
+
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'" viewBox="0 0 '+width+' '+height+'"><rect width="'+width+'" height="'+height+'" fill="'+bg+'"/><image href="'+data+'" x="'+pad+'" y="'+pad+'" width="'+c.width+'" height="'+c.height+'"/>'+text+'</svg>';
+
   const blob=new Blob([svg],{type:"image/svg+xml"});
   const a=document.createElement("a");
   a.download="local-qr-code.svg";
@@ -767,22 +820,20 @@ document.getElementById("downloadSvgBtn").addEventListener("click",()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   showToast("SVG downloaded.");
 });
-document.getElementById("copyBtn").addEventListener("click",async()=>{
-  if(!currentQRData){showToast("Generate a QR code first.");return}window.open("https://www.facebook.com/share/1ErPmfFMdD/","_blank");
-  try{await navigator.clipboard.writeText(currentQRData);showToast("QR data copied.")}catch{showToast("Copy is not available in this browser.")}
-});
-document.getElementById("copyImageBtn").addEventListener("click",async()=>{
-  const c=exportCanvas();if(!c)return;window.open("https://www.facebook.com/share/1ErPmfFMdD/","_blank");
-  try{c.toBlob(async blob=>{if(!blob){showToast("Unable to create QR image.");return}await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);showToast("QR image copied.")},"image/png")}catch{showToast("Image copying is not available in this browser.")}
-});
 document.getElementById("shareBtn").addEventListener("click",async()=>{
-  const c=exportCanvas();if(!c)return;window.open("https://www.facebook.com/share/1ErPmfFMdD/","_blank");
-  c.toBlob(async blob=>{
-    if(!blob)return;const file=new File([blob],"local-qr-code.png",{type:"image/png"});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title:"Local QR Code",files:[file]});return}catch(e){if(e.name==="AbortError")return}}
-    if(navigator.clipboard&&window.ClipboardItem){try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);showToast("QR image copied to clipboard.");return}catch{}}
-    const a=document.createElement("a");a.download="local-qr-code.png";a.href=URL.createObjectURL(blob);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast("QR image downloaded.");
-  },"image/png");
+  if(!currentQRData){showToast("Generate a QR code first.");return}
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title:"Local QR Code",
+        text:currentQRData
+      });
+    }catch(e){
+      if(e.name!=="AbortError")showToast("Sharing was cancelled or unavailable.");
+    }
+  }else{
+    showToast("Sharing is not available in this browser.");
+  }
 });
 document.getElementById("newBtn").addEventListener("click",()=>{
   currentQRData="";
@@ -792,6 +843,7 @@ document.getElementById("newBtn").addEventListener("click",()=>{
   qrOutput.innerHTML="";
   qrOutput.classList.add("hidden");
   emptyResult.classList.remove("hidden");
+  resultPanel.classList.add("hidden");
   qrDescription.textContent="No data generated yet.";
   previewStatus.textContent="Waiting for data";
   liveBadge.textContent="● READY";
