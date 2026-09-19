@@ -51,6 +51,95 @@ button,input,textarea{font:inherit}
 button{cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 .hidden{display:none!important}
+.input-modal{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:grid;
+    place-items:center;
+    padding:20px;
+}
+
+.input-modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.76);
+    backdrop-filter:blur(8px);
+}
+
+.input-modal-box{
+    position:relative;
+    z-index:1;
+    width:min(620px,100%);
+    max-height:min(88vh,760px);
+    overflow:auto;
+    padding:22px;
+    background:#0c1424;
+    border:1px solid rgba(148,163,184,.2);
+    border-radius:22px;
+    box-shadow:0 30px 100px rgba(0,0,0,.55);
+}
+
+.input-modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    margin-bottom:18px;
+}
+
+.input-modal-title{
+    font-size:20px;
+    font-weight:800;
+    color:#fff;
+}
+
+.input-modal-sub{
+    margin-top:5px;
+    font-size:12px;
+    color:#94a3b8;
+}
+
+.input-modal-close{
+    width:36px;
+    height:36px;
+    flex:none;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#111827;
+    color:#cbd5e1;
+    font-size:24px;
+    line-height:1;
+}
+
+.input-modal-close:hover{
+    background:#1e293b;
+    color:#fff;
+}
+
+.input-modal-box .dynamic-card{
+    margin-bottom:14px;
+}
+
+body.modal-open{
+    overflow:hidden;
+}
+
+@media(max-width:650px){
+    .input-modal{
+        padding:12px;
+    }
+
+    .input-modal-box{
+        max-height:92vh;
+        padding:17px;
+        border-radius:18px;
+    }
+
+    .input-modal-title{
+        font-size:18px;
+    }
+}
 .app-shell{min-height:100vh}
 .topbar{
     position:sticky;top:0;z-index:50;
@@ -401,65 +490,7 @@ textarea::placeholder,input::placeholder{color:#64748b}
     </div>
 
     <div class="builder-content">
-      <div id="typePanel"></div>
 
-      <div class="custom-card">
-        <div class="section-heading">
-          <div><b>Customize QR</b><span>Make your code match your brand.</span></div>
-          <button class="collapse-btn" id="customToggle" type="button">Hide</button>
-        </div>
-        <div id="customBody">
-
-          <div class="custom-block">
-            <div class="block-title">Colors</div>
-            <div class="color-grid">
-              <label class="color-picker"><span>QR color</span><input id="qrDark" type="color" value="#111827"></label>
-              <label class="color-picker"><span>Background</span><input id="qrLight" type="color" value="#ffffff"></label>
-            </div>
-          </div>
-
-          <div class="custom-block">
-            <div class="block-title">Center logo</div>
-            <div class="upload-card">
-              <div class="upload-icon">＋</div>
-              <div>
-                <b>Upload your logo</b>
-                <span>PNG, JPG or WebP · max 5 MB</span>
-              </div>
-              <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
-              <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
-            </div>
-            <div class="control-grid">
-              <label class="range-control"><span>Logo size <output id="logoSizeValue">18%</output></span><input id="logoSize" type="range" min="10" max="26" value="18"></label>
-              <label class="range-control"><span>Logo padding <output id="logoPaddingValue">6</output></span><input id="logoPadding" type="range" min="0" max="18" value="6"></label>
-            </div>
-            <label class="check-control"><input id="logoWhiteBox" type="checkbox" checked><span>White background behind logo</span></label>
-          </div>
-
-          <div class="custom-block">
-            <div class="block-title">Frame</div>
-            <div class="segmented" id="frameChoices">
-              <button class="choice active" data-frame="none">None</button>
-              <button class="choice" data-frame="payment">Payment</button>
-              <button class="choice" data-frame="website">Website</button>
-              <button class="choice" data-frame="scan">Custom</button>
-            </div>
-            <div class="field-row frame-fields">
-              <label class="field"><span>Title</span><input id="frameTitle" value="Scan Me" placeholder="Scan Me"></label>
-              <label class="field"><span>Subtitle</span><input id="frameSubtitle" placeholder="Optional"></label>
-            </div>
-          </div>
-
-          <div class="custom-block last-block">
-            <div class="control-grid">
-              <label class="field"><span>Export size</span><select id="qrSize"><option value="512">512 × 512</option><option value="1024" selected>1024 × 1024</option><option value="2048">2048 × 2048</option></select></label>
-              <label class="field"><span>Error correction</span><select id="errorCorrection"><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">Quartile</option><option value="H">High</option></select></label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button id="generateBtn" class="generate">Generate QR Code</button>
       <div class="helper"><span class="helper-icon">✓</span><span><b>Private by design.</b> QR data and uploaded images are processed in your browser. Nothing is sent to an application server.</span></div>
     </div>
   </div>
@@ -500,11 +531,97 @@ textarea::placeholder,input::placeholder{color:#64748b}
       <button id="downloadWebpBtn" class="action">WebP</button>
       <button id="downloadSvgBtn" class="action">SVG</button>
     </div>
-    <div class="result-actions">
-      <button id="shareBtn" class="action">Share</button>
-      <button id="newBtn" class="action">Clear</button>
+<div class="result-actions">
+  <button id="shareBtn" class="action">Share</button>
+  <button id="newBtn" class="action">Clear</button>
+</div>
+</div>
+
+<div class="panel custom-settings" id="customSettings">
+  <div class="custom-card">
+    <div class="section-heading">
+      <div><b>Customize QR</b><span>Make your code match your brand.</span></div>
+      <button class="collapse-btn" id="customToggle" type="button">Hide</button>
+    </div>
+
+    <div id="customBody">
+
+      <div class="custom-block">
+        <div class="block-title">Colors</div>
+        <div class="color-grid">
+          <label class="color-picker"><span>QR color</span><input id="qrDark" type="color" value="#111827"></label>
+          <label class="color-picker"><span>Background</span><input id="qrLight" type="color" value="#ffffff"></label>
+        </div>
+      </div>
+
+      <div class="custom-block">
+        <div class="block-title">Center logo</div>
+        <div class="upload-card">
+          <div class="upload-icon">＋</div>
+          <div>
+            <b>Upload your logo</b>
+            <span>PNG, JPG or WebP · max 5 MB</span>
+          </div>
+          <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
+          <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
+        </div>
+
+        <div class="control-grid">
+          <label class="range-control"><span>Logo size <output id="logoSizeValue">18%</output></span><input id="logoSize" type="range" min="10" max="26" value="18"></label>
+          <label class="range-control"><span>Logo padding <output id="logoPaddingValue">6</output></span><input id="logoPadding" type="range" min="0" max="18" value="6"></label>
+        </div>
+
+        <label class="check-control"><input id="logoWhiteBox" type="checkbox" checked><span>White background behind logo</span></label>
+      </div>
+
+      <div class="custom-block">
+        <div class="block-title">Frame</div>
+
+        <div class="segmented" id="frameChoices">
+          <button class="choice active" data-frame="none">None</button>
+          <button class="choice" data-frame="payment">Payment</button>
+          <button class="choice" data-frame="website">Website</button>
+          <button class="choice" data-frame="scan">Custom</button>
+        </div>
+
+        <div class="field-row frame-fields">
+          <label class="field"><span>Title</span><input id="frameTitle" value="Scan Me" placeholder="Scan Me"></label>
+          <label class="field"><span>Subtitle</span><input id="frameSubtitle" placeholder="Optional"></label>
+        </div>
+      </div>
+
+      <div class="custom-block last-block">
+        <div class="control-grid">
+          <label class="field">
+            <span>Export size</span>
+            <select id="qrSize">
+              <option value="512">512 × 512</option>
+              <option value="1024" selected>1024 × 1024</option>
+              <option value="2048">2048 × 2048</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Error correction</span>
+            <select id="errorCorrection">
+              <option value="L">Low</option>
+              <option value="M" selected>Medium</option>
+              <option value="Q">Quartile</option>
+              <option value="H">High</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
     </div>
   </div>
+
+  <div class="helper">
+    <span class="helper-icon">✓</span>
+    <span><b>Private by design.</b> QR data and uploaded images are processed in your browser. Nothing is sent to an application server.</span>
+  </div>
+</div>
+
 </section>
 
 
@@ -538,6 +655,24 @@ textarea::placeholder,input::placeholder{color:#64748b}
 
 <div id="toast" class="toast"></div>
 
+<div id="inputModal" class="input-modal hidden">
+  <div class="input-modal-backdrop" id="inputModalBackdrop"></div>
+
+  <div class="input-modal-box">
+    <div class="input-modal-head">
+      <div>
+        <div class="input-modal-title" id="inputModalTitle">Enter your information</div>
+        <div class="input-modal-sub" id="inputModalSub">Fill in the details below.</div>
+      </div>
+      <button type="button" class="input-modal-close" id="inputModalClose">×</button>
+    </div>
+
+    <div id="typePanel"></div>
+
+    <button id="modalGenerateBtn" class="generate">Generate QR Code</button>
+  </div>
+</div>
+
 
 <script>
 
@@ -556,7 +691,9 @@ const liveBadge = document.getElementById("liveBadge");
 const previewType = document.getElementById("previewType");
 const previewStatus = document.getElementById("previewStatus");
 const resultPanel = document.getElementById("resultPanel");
-
+const inputModal = document.getElementById("inputModal");
+const inputModalTitle = document.getElementById("inputModalTitle");
+const inputModalSub = document.getElementById("inputModalSub");
 
 const templates = {
 text:`<div class="dynamic-card"><div class="dynamic-title">What do you want to encode?</div><div class="fields"><label class="field"><span>Text or message</span><textarea id="textInput" placeholder="Paste text, contact details, a message or any data..."></textarea></label><div class="field-help" id="textHelp">Maximum QR payload depends on the selected error correction.</div></div></div>`,
@@ -583,9 +720,42 @@ function escapeWifi(value){return String(value).replace(/([\\;,:"])/g,"\\$1")}
 function renderType(type){
   currentType=type;
   typePanel.innerHTML=templates[type];
-  document.querySelectorAll(".type-card").forEach(b=>b.classList.toggle("active",b.dataset.type===type));
-    previewType.textContent=type.toUpperCase();
+
+  document.querySelectorAll(".type-card").forEach(b=>{
+    b.classList.toggle("active",b.dataset.type===type);
+  });
+
+  previewType.textContent=type.toUpperCase();
+
+  const names={
+    text:["Text or data","Enter the text or information you want to encode."],
+    link:["Website URL","Enter the website or share link you want to encode."],
+    upi:["UPI Payment","Enter the UPI payment details."],
+    phone:["Phone Number","Enter the phone number to create a call QR code."],
+    email:["Email","Enter the email address and optional message."],
+    wifi:["Wi-Fi Network","Enter the Wi-Fi network details."],
+    contact:["Contact Details","Enter the contact information for the QR code."],
+    sms:["SMS Message","Enter the phone number and message."],
+    location:["Location","Enter the latitude and longitude."],
+    whatsapp:["WhatsApp","Enter the WhatsApp number and optional message."]
+  };
+
+  inputModalTitle.textContent=names[type][0];
+  inputModalSub.textContent=names[type][1];
+
   bindInputs();
+
+  inputModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+
+  setTimeout(()=>{
+    const first=typePanel.querySelector("input,textarea,select");
+    if(first)first.focus();
+  },100);
+}
+function closeInputModal(){
+  inputModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
 }
 function bindInputs(){
   document.querySelectorAll("#typePanel input,#typePanel textarea,#typePanel select").forEach(el=>{
@@ -714,6 +884,12 @@ async function generatePreview(silent){
       }
     }
 document.querySelectorAll(".type-card").forEach(b=>b.addEventListener("click",()=>renderType(b.dataset.type)));
+document.getElementById("inputModalClose").addEventListener("click",closeInputModal);
+document.getElementById("inputModalBackdrop").addEventListener("click",closeInputModal);
+document.getElementById("modalGenerateBtn").addEventListener("click",async()=>{
+  await generatePreview(false);
+  if(currentQRData)closeInputModal();
+});
 document.querySelectorAll("#frameChoices .choice").forEach(b=>b.addEventListener("click",()=>{
   selectedFrame=b.dataset.frame;document.querySelectorAll("#frameChoices .choice").forEach(x=>x.classList.toggle("active",x===b));
   if(selectedFrame==="scan")document.getElementById("frameTitle").value="Scan Me";
@@ -733,9 +909,6 @@ document.getElementById("logoInput").addEventListener("change",e=>{
   const file=e.target.files[0];if(!file)return;
   if(file.size>5*1024*1024){showToast("Logo must be 5 MB or smaller.");e.target.value="";return}
   const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{logoImage=img;const p=document.getElementById("logoPreview");p.src=reader.result;p.classList.remove("hidden");if(currentQRData)generatePreview(true)};img.src=reader.result};reader.readAsDataURL(file);
-});
-document.getElementById("generateBtn").addEventListener("click",()=>{
-  generatePreview(false);
 });
 
 function exportCanvas(){const c=qrOutput.querySelector("canvas");if(!c||!currentQRData){showToast("Generate a QR code first.");return null}return c}
@@ -873,15 +1046,21 @@ document.getElementById("newBtn").addEventListener("click",()=>{
   customBody.classList.remove("hidden");
   customToggle.textContent="Hide";
 
-  renderType("text");
+  currentType="text";
+  typePanel.innerHTML="";
+  document.querySelectorAll(".type-card").forEach(x=>x.classList.toggle("active",x.dataset.type==="text"));
+  previewType.textContent="TEXT";
+  closeInputModal();
 
   document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"});
-  setTimeout(()=>document.getElementById("textInput").focus(),450);
-  showToast("QR and settings restored to default.");
-});
-document.getElementById("heroStartBtn").addEventListener("click",()=>{document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>document.getElementById("textInput").focus(),450)});
-document.getElementById("heroInfoBtn").addEventListener("click",()=>document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"}));
-renderType("text");
+    setTimeout(()=>document.getElementById("textInput").focus(),450);
+    showToast("QR and settings restored to default.");
+  });
+  document.getElementById("heroStartBtn").addEventListener("click",()=>{document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>document.getElementById("textInput").focus(),450)});
+  document.getElementById("heroInfoBtn").addEventListener("click",()=>document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"}));
+  currentType="text";
+  document.querySelectorAll(".type-card").forEach(x=>x.classList.toggle("active",x.dataset.type==="text"));
+  previewType.textContent="TEXT";
 
 </script>
 </body>
