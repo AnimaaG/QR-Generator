@@ -595,11 +595,12 @@ function bindInputs(){
 }
 function buildData(){
   if(currentType==="text") return document.getElementById("textInput").value.trim();
-  if(currentType==="link"){
-    const v=document.getElementById("linkInput").value.trim();
-    if(v && !/^https?:\/\//i.test(v)) return "";
-    return v;
-  }
+if(currentType==="link"){
+  let v=document.getElementById("linkInput").value.trim();
+  if(!v)return "";
+  if(!/^https?:\/\//i.test(v))v="https://"+v;
+  return v;
+}
   if(currentType==="upi"){
     const pa=document.getElementById("upiId").value.trim();
     const am=document.getElementById("upiAmount").value.trim();
