@@ -422,6 +422,209 @@ textarea::placeholder,input::placeholder{color:#64748b}
 .action.main-action{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0}
 @media(max-width:900px){.type-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:650px){.type-grid{grid-template-columns:repeat(2,1fr)}.field-row,.color-grid,.control-grid{grid-template-columns:1fr}.segmented{grid-template-columns:repeat(2,1fr)}.export-row{grid-template-columns:1fr 1fr}.qr-stage.custom-stage{min-height:330px}}
+.custom-qr-button{
+    width:100%;
+    margin-top:9px;
+    border:1px solid rgba(96,165,250,.28);
+    border-radius:11px;
+    padding:11px;
+    color:#dbeafe;
+    background:rgba(59,130,246,.08);
+    font-weight:800;
+    font-size:11px;
+    transition:.2s;
+}
+
+.custom-qr-button:hover{
+    background:rgba(59,130,246,.16);
+    border-color:rgba(96,165,250,.5);
+    transform:translateY(-1px);
+}
+
+.custom-qr-modal{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    display:grid;
+    place-items:center;
+    padding:16px;
+}
+
+.custom-qr-modal.hidden{
+    display:none;
+}
+
+.custom-qr-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.82);
+    backdrop-filter:blur(10px);
+}
+
+.custom-qr-box{
+    position:relative;
+    z-index:1;
+    width:min(920px,100%);
+    max-height:92vh;
+    overflow:auto;
+    padding:20px;
+    background:#0c1424;
+    border:1px solid rgba(148,163,184,.2);
+    border-radius:22px;
+    box-shadow:0 30px 100px rgba(0,0,0,.6);
+}
+
+.custom-qr-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    margin-bottom:18px;
+}
+
+.custom-qr-title{
+    font-size:20px;
+    font-weight:800;
+    color:#fff;
+}
+
+.custom-qr-sub{
+    margin-top:5px;
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.custom-qr-close{
+    width:36px;
+    height:36px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#111827;
+    color:#cbd5e1;
+    font-size:24px;
+    line-height:1;
+}
+
+.custom-qr-layout{
+    display:grid;
+    grid-template-columns:minmax(280px,.9fr) minmax(340px,1.1fr);
+    gap:16px;
+}
+
+.custom-live-preview{
+    min-width:0;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:#080e19;
+}
+
+.custom-preview-label{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+    font-size:10px;
+    color:#64748b;
+}
+
+.custom-preview-label span:first-child{
+    color:#93c5fd;
+    font-weight:800;
+    letter-spacing:.06em;
+}
+
+.custom-preview-stage{
+    min-height:430px;
+    display:grid;
+    place-items:center;
+    padding:18px;
+    border-radius:14px;
+    background:
+        radial-gradient(circle at 50% 30%,rgba(96,165,250,.1),transparent 42%),
+        #070c16;
+    border:1px solid var(--line);
+    overflow:hidden;
+}
+
+#customQrPreview{
+    max-width:100%;
+    display:flex;
+    justify-content:center;
+}
+
+#customQrPreview .qr-wrapper{
+    max-width:100%;
+}
+
+#customQrPreview canvas{
+    display:block;
+    max-width:min(100%,360px);
+    height:auto;
+}
+
+.custom-controls{
+    min-width:0;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:rgba(8,14,25,.52);
+}
+
+.custom-controls .custom-block{
+    padding:15px 0;
+    border-bottom:1px solid rgba(148,163,184,.1);
+}
+
+.custom-controls .custom-block:first-child{
+    padding-top:0;
+}
+
+.custom-controls .last-block{
+    border-bottom:0;
+    padding-bottom:0;
+}
+
+.custom-qr-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-top:16px;
+    padding-top:15px;
+    border-top:1px solid var(--line);
+    color:#64748b;
+    font-size:10px;
+}
+
+.custom-qr-footer .generate{
+    width:auto;
+    min-width:100px;
+}
+
+@media(max-width:760px){
+    .custom-qr-box{
+        padding:15px;
+        max-height:94vh;
+    }
+
+    .custom-qr-layout{
+        grid-template-columns:1fr;
+    }
+
+    .custom-preview-stage{
+        min-height:300px;
+    }
+
+    .custom-qr-footer{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .custom-qr-footer .generate{
+        width:100%;
+    }
+}
 </style>
 
 </head>
@@ -531,93 +734,10 @@ textarea::placeholder,input::placeholder{color:#64748b}
   <button id="shareBtn" class="action">Share</button>
   <button id="newBtn" class="action">Clear</button>
 </div>
+
+<button id="customQrBtn" class="custom-qr-button">Custom QR</button>
+
 </div>
-
-<div class="panel custom-settings" id="customSettings">
-  <div class="custom-card">
-    <div class="section-heading">
-      <div><b>Customize QR</b><span>Make your code match your brand.</span></div>
-      <button class="collapse-btn" id="customToggle" type="button">Hide</button>
-    </div>
-
-    <div id="customBody">
-
-      <div class="custom-block">
-        <div class="block-title">Colors</div>
-        <div class="color-grid">
-          <label class="color-picker"><span>QR color</span><input id="qrDark" type="color" value="#111827"></label>
-          <label class="color-picker"><span>Background</span><input id="qrLight" type="color" value="#ffffff"></label>
-        </div>
-      </div>
-
-      <div class="custom-block">
-        <div class="block-title">Center logo</div>
-        <div class="upload-card">
-          <div class="upload-icon">＋</div>
-          <div>
-            <b>Upload your logo</b>
-            <span>PNG, JPG or WebP · max 5 MB</span>
-          </div>
-          <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
-          <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
-        </div>
-
-        <div class="control-grid">
-          <label class="range-control"><span>Logo size <output id="logoSizeValue">18%</output></span><input id="logoSize" type="range" min="10" max="26" value="18"></label>
-          <label class="range-control"><span>Logo padding <output id="logoPaddingValue">6</output></span><input id="logoPadding" type="range" min="0" max="18" value="6"></label>
-        </div>
-
-        <label class="check-control"><input id="logoWhiteBox" type="checkbox" checked><span>White background behind logo</span></label>
-      </div>
-
-      <div class="custom-block">
-        <div class="block-title">Frame</div>
-
-        <div class="segmented" id="frameChoices">
-          <button class="choice active" data-frame="none">None</button>
-          <button class="choice" data-frame="payment">Payment</button>
-          <button class="choice" data-frame="website">Website</button>
-          <button class="choice" data-frame="scan">Custom</button>
-        </div>
-
-        <div class="field-row frame-fields">
-          <label class="field"><span>Title</span><input id="frameTitle" value="Scan Me" placeholder="Scan Me"></label>
-          <label class="field"><span>Subtitle</span><input id="frameSubtitle" placeholder="Optional"></label>
-        </div>
-      </div>
-
-      <div class="custom-block last-block">
-        <div class="control-grid">
-          <label class="field">
-            <span>Export size</span>
-            <select id="qrSize">
-              <option value="512">512 × 512</option>
-              <option value="1024" selected>1024 × 1024</option>
-              <option value="2048">2048 × 2048</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Error correction</span>
-            <select id="errorCorrection">
-              <option value="L">Low</option>
-              <option value="M" selected>Medium</option>
-              <option value="Q">Quartile</option>
-              <option value="H">High</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="helper">
-    <span class="helper-icon">✓</span>
-    <span><b>Private by design.</b> QR data and uploaded images are processed in your browser. Nothing is sent to an application server.</span>
-  </div>
-</div>
-
 </section>
 
 
@@ -669,6 +789,137 @@ textarea::placeholder,input::placeholder{color:#64748b}
   </div>
 </div>
 
+<div id="customQrModal" class="custom-qr-modal hidden">
+  <div class="custom-qr-backdrop" id="customQrBackdrop"></div>
+
+  <div class="custom-qr-box">
+    <div class="custom-qr-head">
+      <div>
+        <div class="custom-qr-title">Custom QR</div>
+        <div class="custom-qr-sub">Customize your QR and see changes instantly.</div>
+      </div>
+      <button type="button" class="custom-qr-close" id="customQrClose">×</button>
+    </div>
+
+    <div class="custom-qr-layout">
+
+      <div class="custom-live-preview">
+        <div class="custom-preview-label">
+          <span>LIVE PREVIEW</span>
+          <span id="customPreviewStatus">Ready</span>
+        </div>
+
+        <div class="custom-preview-stage">
+          <div id="customQrPreview"></div>
+        </div>
+      </div>
+
+      <div class="custom-controls">
+
+        <div class="custom-block">
+          <div class="block-title">Colors</div>
+          <div class="color-grid">
+            <label class="color-picker">
+              <span>QR color</span>
+              <input id="qrDark" type="color" value="#111827">
+            </label>
+
+            <label class="color-picker">
+              <span>Background</span>
+              <input id="qrLight" type="color" value="#ffffff">
+            </label>
+          </div>
+        </div>
+
+        <div class="custom-block">
+          <div class="block-title">Center logo</div>
+
+          <div class="upload-card">
+            <div class="upload-icon">＋</div>
+
+            <div>
+              <b>Upload your logo</b>
+              <span>PNG, JPG or WebP · max 5 MB</span>
+            </div>
+
+            <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
+
+            <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
+          </div>
+
+          <div class="control-grid">
+            <label class="range-control">
+              <span>Logo size <output id="logoSizeValue">18%</output></span>
+              <input id="logoSize" type="range" min="10" max="26" value="18">
+            </label>
+
+            <label class="range-control">
+              <span>Logo padding <output id="logoPaddingValue">6</output></span>
+              <input id="logoPadding" type="range" min="0" max="18" value="6">
+            </label>
+          </div>
+
+          <label class="check-control">
+            <input id="logoWhiteBox" type="checkbox" checked>
+            <span>White background behind logo</span>
+          </label>
+        </div>
+
+        <div class="custom-block">
+          <div class="block-title">Frame</div>
+
+          <div class="segmented" id="frameChoices">
+            <button class="choice active" data-frame="none">None</button>
+            <button class="choice" data-frame="payment">Payment</button>
+            <button class="choice" data-frame="website">Website</button>
+            <button class="choice" data-frame="scan">Custom</button>
+          </div>
+
+          <div class="field-row frame-fields">
+            <label class="field">
+              <span>Title</span>
+              <input id="frameTitle" value="Scan Me" placeholder="Scan Me">
+            </label>
+
+            <label class="field">
+              <span>Subtitle</span>
+              <input id="frameSubtitle" placeholder="Optional">
+            </label>
+          </div>
+        </div>
+
+        <div class="custom-block last-block">
+          <div class="control-grid">
+            <label class="field">
+              <span>Export size</span>
+              <select id="qrSize">
+                <option value="512">512 × 512</option>
+                <option value="1024" selected>1024 × 1024</option>
+                <option value="2048">2048 × 2048</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Error correction</span>
+              <select id="errorCorrection">
+                <option value="L">Low</option>
+                <option value="M" selected>Medium</option>
+                <option value="Q">Quartile</option>
+                <option value="H">High</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="custom-qr-footer">
+      <span>Changes are applied instantly to your QR.</span>
+      <button id="customQrDone" class="generate">Done</button>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -688,6 +939,9 @@ const previewType = document.getElementById("previewType");
 const previewStatus = document.getElementById("previewStatus");
 const resultPanel = document.getElementById("resultPanel");
 const inputModal = document.getElementById("inputModal");
+const customQrModal = document.getElementById("customQrModal");
+const customQrPreview = document.getElementById("customQrPreview");
+const customPreviewStatus = document.getElementById("customPreviewStatus");
 const inputModalTitle = document.getElementById("inputModalTitle");
 const inputModalSub = document.getElementById("inputModalSub");
 
@@ -849,21 +1103,52 @@ function drawStyledQR(data){
 }
 function renderResult(canvas){
   qrOutput.innerHTML="";
-  qrOutput.classList.remove("hidden");emptyResult.classList.add("hidden");
-  const wrapper=document.createElement("div");wrapper.className="qr-wrapper";wrapper.style.background=document.getElementById("qrLight").value;
+  qrOutput.classList.remove("hidden");
+  emptyResult.classList.add("hidden");
+
+  const wrapper=document.createElement("div");
+  wrapper.className="qr-wrapper";
+  wrapper.style.background=document.getElementById("qrLight").value;
   wrapper.appendChild(canvas);
+  
   if(selectedFrame!=="none"){
     const title=document.createElement("strong"),sub=document.createElement("span");
     const fallback=selectedFrame==="payment"?"Scan to Pay":selectedFrame==="website"?"Visit Website":"Scan Me";
     title.textContent=document.getElementById("frameTitle").value.trim()||fallback;
     title.style.cssText="font-size:18px;color:"+document.getElementById("qrDark").value;
     wrapper.appendChild(title);
+
     const subtitle=document.getElementById("frameSubtitle").value.trim();
-    if(subtitle){sub.textContent=subtitle;sub.style.cssText="font-size:12px;color:"+document.getElementById("qrDark").value;wrapper.appendChild(sub)}
+
+    if(subtitle){
+      sub.textContent=subtitle;
+      sub.style.cssText="font-size:12px;color:"+document.getElementById("qrDark").value;
+      wrapper.appendChild(sub);
+    }
   }
+
   qrOutput.appendChild(wrapper);
+
+if(!customQrModal.classList.contains("hidden")){
+  customQrPreview.innerHTML="";
+
+  const previewWrapper=wrapper.cloneNode(true);
+  const sourceCanvas=wrapper.querySelector("canvas");
+  const previewCanvas=previewWrapper.querySelector("canvas");
+
+  if(sourceCanvas&&previewCanvas){
+    previewCanvas.width=sourceCanvas.width;
+    previewCanvas.height=sourceCanvas.height;
+    previewCanvas.getContext("2d").drawImage(sourceCanvas,0,0);
+  }
+
+  customQrPreview.appendChild(previewWrapper);
+  customPreviewStatus.textContent="Updated";
+}
+
   qrDescription.textContent=currentType==="upi"?"UPI payment QR generated locally.":"Customized QR generated locally in your browser.";
-  liveBadge.textContent="● READY";previewStatus.textContent="Generated";
+  liveBadge.textContent="● READY";
+  previewStatus.textContent="Generated";
 }
 async function generatePreview(silent){
   try{
@@ -873,7 +1158,9 @@ async function generatePreview(silent){
     if(utf8Bytes(data)>QR_MAX_BYTES)throw new Error("This data is too large for QR capacity.");
     currentQRData=data; renderResult(drawStyledQR(data));
     resultPanel.classList.remove("hidden");
-    resultPanel.scrollIntoView({behavior:"smooth",block:"center"});
+    if(customQrModal.classList.contains("hidden")){
+      resultPanel.scrollIntoView({behavior:"smooth",block:"center"});
+    }
       }catch(e){
         liveBadge.textContent="● READY";previewStatus.textContent="Waiting for data";
         if(!silent)showToast(e.message||"Unable to generate this QR.");
@@ -895,17 +1182,45 @@ document.querySelectorAll("#frameChoices .choice").forEach(b=>b.addEventListener
 }));
 ["qrDark","qrLight","logoSize","logoPadding","logoWhiteBox","frameTitle","frameSubtitle","qrSize","errorCorrection"].forEach(id=>{
   const el=document.getElementById(id);
-  el.addEventListener("input",()=>{if(id==="logoSize")document.getElementById("logoSizeValue").textContent=el.value+"%";if(id==="logoPadding")document.getElementById("logoPaddingValue").textContent=el.value});
-});
-document.getElementById("customToggle").addEventListener("click",()=>{
-  const body=document.getElementById("customBody"),btn=document.getElementById("customToggle"),hide=!body.classList.contains("hidden");
-  body.classList.toggle("hidden",hide);btn.textContent=hide?"Show":"Hide";
+
+  const update=()=>{
+    if(id==="logoSize")document.getElementById("logoSizeValue").textContent=el.value+"%";
+    if(id==="logoPadding")document.getElementById("logoPaddingValue").textContent=el.value;
+
+    if(currentQRData)generatePreview(true);
+  };
+
+  el.addEventListener("input",update);
+  el.addEventListener("change",update);
 });
 document.getElementById("logoInput").addEventListener("change",e=>{
   const file=e.target.files[0];if(!file)return;
   if(file.size>5*1024*1024){showToast("Logo must be 5 MB or smaller.");e.target.value="";return}
   const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{logoImage=img;const p=document.getElementById("logoPreview");p.src=reader.result;p.classList.remove("hidden");if(currentQRData)generatePreview(true)};img.src=reader.result};reader.readAsDataURL(file);
 });
+
+function openCustomQrModal(){
+  if(!currentQRData){
+    showToast("Generate a QR code first.");
+    return;
+  }
+
+  customQrModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+
+  customPreviewStatus.textContent="Live";
+  generatePreview(true);
+}
+
+function closeCustomQrModal(){
+  customQrModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+document.getElementById("customQrBtn").addEventListener("click",openCustomQrModal);
+document.getElementById("customQrClose").addEventListener("click",closeCustomQrModal);
+document.getElementById("customQrDone").addEventListener("click",closeCustomQrModal);
+document.getElementById("customQrBackdrop").addEventListener("click",closeCustomQrModal);
 
 function exportCanvas(){const c=qrOutput.querySelector("canvas");if(!c||!currentQRData){showToast("Generate a QR code first.");return null}return c}
 function downloadCanvas(type,ext){
@@ -1037,23 +1352,19 @@ document.getElementById("newBtn").addEventListener("click",()=>{
 
   document.querySelectorAll("#frameChoices .choice").forEach(x=>x.classList.toggle("active",x.dataset.frame==="none"));
 
-  const customBody=document.getElementById("customBody");
-  const customToggle=document.getElementById("customToggle");
-  customBody.classList.remove("hidden");
-  customToggle.textContent="Hide";
-
   currentType="text";
   typePanel.innerHTML="";
   document.querySelectorAll(".type-card").forEach(x=>x.classList.toggle("active",x.dataset.type==="text"));
   previewType.textContent="TEXT";
   closeInputModal();
+  closeCustomQrModal();
+  customQrPreview.innerHTML="";
+  customPreviewStatus.textContent="Ready";
 
   document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"});
     setTimeout(()=>document.getElementById("textInput").focus(),450);
     showToast("QR and settings restored to default.");
   });
-  document.getElementById("heroStartBtn").addEventListener("click",()=>{document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>document.getElementById("textInput").focus(),450)});
-  document.getElementById("heroInfoBtn").addEventListener("click",()=>document.getElementById("generator").scrollIntoView({behavior:"smooth",block:"center"}));
   currentType="text";
   document.querySelectorAll(".type-card").forEach(x=>x.classList.toggle("active",x.dataset.type==="text"));
   previewType.textContent="TEXT";
