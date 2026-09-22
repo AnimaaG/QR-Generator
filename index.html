@@ -399,7 +399,30 @@ textarea::placeholder,input::placeholder{color:#64748b}
 .choice.active{border-color:rgba(96,165,250,.5);background:rgba(59,130,246,.12);color:#fff}.choice:disabled{opacity:.35;cursor:not-allowed}
 .color-grid,.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .color-picker{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);background:#0a101d;border-radius:10px;color:#94a3b8;font-size:10px}
-.color-picker input{width:35px;height:26px;padding:0;border:0;background:transparent}
+.color-picker input[type="color"]{
+    width:32px;
+    height:32px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    appearance:none;
+    -webkit-appearance:none;
+    overflow:hidden;
+    cursor:pointer;
+}
+.color-picker input[type="color"]::-webkit-color-swatch-wrapper{
+    padding:0;
+    border-radius:50%;
+}
+.color-picker input[type="color"]::-webkit-color-swatch{
+    border:2px solid rgba(255,255,255,.25);
+    border-radius:50%;
+}
+.color-picker input[type="color"]::-moz-color-swatch{
+    border:2px solid rgba(255,255,255,.25);
+    border-radius:50%;
+}
 .range-control{display:grid;gap:7px}.range-control>span{display:flex;justify-content:space-between}.range-control output{color:#93c5fd}
 .range-control input{width:100%;accent-color:#5b7cfa}
 .upload-card{position:relative;display:flex;align-items:center;gap:10px;padding:11px;border:1px dashed rgba(96,165,250,.28);background:rgba(59,130,246,.035);border-radius:11px;overflow:hidden}
@@ -1306,18 +1329,63 @@ document.getElementById("downloadSvgBtn").addEventListener("click",()=>{
   showToast("SVG downloaded.");
 });
 document.getElementById("shareBtn").addEventListener("click",async()=>{
-  if(!currentQRData){showToast("Generate a QR code first.");return}
-  if(navigator.share){
-    try{
-      await navigator.share({
-        title:"Local QR Code",
-        text:currentQRData
-      });
-    }catch(e){
-      if(e.name!=="AbortError")showToast("Sharing was cancelled or unavailable.");
+  const c=exportCanvas();
+  if(!c)return;
+
+  if(!navigator.share){
+    showToast("Image sharing is not available in this browser.");
+    return;
+  }
+
+  try{
+    const shareCanvas=document.createElement("canvas");
+    const title=selectedFrame!=="none"?(document.getElementById("frameTitle").value.trim()||(selectedFrame==="payment"?"Scan to Pay":selectedFrame==="website"?"Visit Website":"Scan Me")):"";
+    const subtitle=selectedFrame!=="none"?document.getElementById("frameSubtitle").value.trim():"";
+    const textSpace=selectedFrame!=="none"?(subtitle?70:45):0;
+    const pad=Math.max(24,Math.round(c.width*.04));
+
+    shareCanvas.width=c.width+pad*2;
+    shareCanvas.height=c.height+pad*2+textSpace;
+
+    const ctx=shareCanvas.getContext("2d");
+    ctx.fillStyle=document.getElementById("qrLight").value;
+    ctx.fillRect(0,0,shareCanvas.width,shareCanvas.height);
+    ctx.drawImage(c,pad,pad);
+
+    if(selectedFrame!=="none"){
+      const dark=document.getElementById("qrDark").value;
+
+      ctx.textAlign="center";
+      ctx.fillStyle=dark;
+      ctx.font="bold "+Math.max(24,Math.round(c.width*.035))+"px Arial";
+      ctx.fillText(title,shareCanvas.width/2,c.height+pad+Math.max(30,Math.round(c.width*.05)));
+
+      if(subtitle){
+        ctx.font=Math.max(16,Math.round(c.width*.022))+"px Arial";
+        ctx.fillText(subtitle,shareCanvas.width/2,c.height+pad+Math.max(52,Math.round(c.width*.075)));
+      }
     }
-  }else{
-    showToast("Sharing is not available in this browser.");
+
+    shareCanvas.toBlob(async blob=>{
+      if(!blob){
+        showToast("Unable to create QR image.");
+        return;
+      }
+
+      const file=new File([blob],"local-qr-code.png",{type:"image/png"});
+      const shareData={
+        title:"Local QR Code",
+        files:[file]
+      };
+
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share(shareData);
+      }else{
+        showToast("Image sharing is not supported on this device.");
+      }
+    },"image/png");
+  }catch(e){
+    if(e.name!=="AbortError")showToast("Image sharing was cancelled or unavailable.");
   }
 });
 document.getElementById("newBtn").addEventListener("click",()=>{
