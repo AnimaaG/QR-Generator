@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head> 
 
-<script src="https://quge5.com/88/tag.min.js" data-zone="284361" async data-cfasync="false"></script>
+<script>(function(s){s.dataset.zone='11868167',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
+<script>(function(s){s.dataset.zone='11690274',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
+<script>(function(s){s.dataset.zone='11683935',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
+<script src="https://5gvci.com/act/files/tag.min.js?z=11872433" data-cfasync="false" async></script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1326,14 +1333,75 @@ document.getElementById("downloadSvgBtn").addEventListener("click",()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   showToast("SVG downloaded.");
 });
-document.getElementById("shareBtn").addEventListener("click",async()=>{
-  const c=exportCanvas();
-  if(!c)return;
 
-  if(!navigator.share){
-    showToast("Image sharing is not available in this browser.");
-    return;
+function openDirectLink(){
+  window.open("https://omg10.com/4/11693694","_blank");
+}
+
+let pendingShareFile=null;
+let pendingShareBlob=null;
+
+document.getElementById("shareBtn").addEventListener("click",async()=>{
+  const shareBtn=document.getElementById("shareBtn");
+
+  if(pendingShareFile&&pendingShareBlob){
+    try{
+      if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[pendingShareFile]})){
+        const downloadImage=confirm("Image sharing is not supported on this browser or device. Would you like to download the QR image instead?");
+
+        if(downloadImage){
+          const a=document.createElement("a");
+          a.download="local-qr-code.png";
+          a.href=URL.createObjectURL(pendingShareBlob);
+          a.click();
+          setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+          showToast("QR image downloaded.");
+        }
+
+        pendingShareFile=null;
+        pendingShareBlob=null;
+        shareBtn.textContent="Share";
+        return;
+      }
+
+      await navigator.share({
+        files:[pendingShareFile]
+      });
+
+      pendingShareFile=null;
+      pendingShareBlob=null;
+      shareBtn.textContent="Share";
+      return;
+
+    }catch(e){
+      if(e.name==="AbortError"){
+        pendingShareFile=null;
+        pendingShareBlob=null;
+        shareBtn.textContent="Share";
+        return;
+      }
+
+      const downloadImage=confirm("Image sharing failed on this browser or device. Would you like to download the QR image instead?");
+
+      if(downloadImage){
+        const a=document.createElement("a");
+        a.download="local-qr-code.png";
+        a.href=URL.createObjectURL(pendingShareBlob);
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        showToast("QR image downloaded.");
+      }
+
+      pendingShareFile=null;
+      pendingShareBlob=null;
+      shareBtn.textContent="Share";
+      return;
+    }
   }
+
+  const c=exportCanvas();
+
+  if(!c)return;
 
   try{
     const shareCanvas=document.createElement("canvas");
@@ -1364,29 +1432,33 @@ document.getElementById("shareBtn").addEventListener("click",async()=>{
       }
     }
 
-    shareCanvas.toBlob(async blob=>{
-      if(!blob){
-        showToast("Unable to create QR image.");
-        return;
-      }
+    const dataUrl=shareCanvas.toDataURL("image/png");
+    const base64=dataUrl.split(",")[1];
+    const binary=atob(base64);
+    const bytes=new Uint8Array(binary.length);
 
-      const file=new File([blob],"local-qr-code.png",{type:"image/png"});
-      const shareData={
-        title:"Local QR Code",
-        files:[file]
-      };
+    for(let i=0;i<binary.length;i++){
+      bytes[i]=binary.charCodeAt(i);
+    }
 
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share(shareData);
-      }else{
-        showToast("Image sharing is not supported on this device.");
-      }
-    },"image/png");
+    pendingShareBlob=new Blob([bytes],{type:"image/png"});
+    pendingShareFile=new File([pendingShareBlob],"local-qr-code.png",{type:"image/png"});
+
+    openDirectLink();
+
+    shareBtn.textContent="Continue to Share";
+    showToast("Return here and tap Continue to Share.");
+
   }catch(e){
-    if(e.name!=="AbortError")showToast("Image sharing was cancelled or unavailable.");
+    pendingShareFile=null;
+    pendingShareBlob=null;
+    shareBtn.textContent="Share";
+    showToast("Unable to prepare QR image.");
   }
 });
+
 document.getElementById("newBtn").addEventListener("click",()=>{
+    openDirectLink();
   currentQRData="";
   logoImage=null;
   selectedFrame="none";
