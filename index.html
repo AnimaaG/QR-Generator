@@ -1057,7 +1057,7 @@ if(currentType==="link"){
     if(!pa) return "";
     const p=new URLSearchParams();
     p.set("pa",pa); if(pn)p.set("pn",pn); if(am)p.set("am",am); p.set("cu","INR"); if(tn)p.set("tn",tn);
-    return "upi://pay?"+p.toString();
+    return "upi://pay?"+p.toString().replace(/\+/g,"%20");
   }
   if(currentType==="phone"){
     const v=document.getElementById("phoneInput").value.trim();
@@ -1068,7 +1068,7 @@ if(currentType==="link"){
     if(!a)return "";
     const p=new URLSearchParams(); const sub=document.getElementById("emailSubject").value.trim(); const body=document.getElementById("emailBody").value.trim();
     if(sub)p.set("subject",sub); if(body)p.set("body",body);
-    return "mailto:"+a+(p.toString()?"?"+p.toString():"");
+    return "mailto:"+a+(p.toString()?"?"+p.toString().replace(/\+/g,"%20"):"");
   }
   if(currentType==="wifi"){
     const s=document.getElementById("wifiSsid").value.trim();
@@ -1078,14 +1078,21 @@ if(currentType==="link"){
     return "WIFI:T:"+t+";S:"+escapeWifi(s)+";P:"+escapeWifi(p)+";H:"+h+";;";
   }
   if(currentType==="contact"){
-    const name=document.getElementById("contactName").value.trim();
-    const phone=document.getElementById("contactPhone").value.trim();
-    const email=document.getElementById("contactEmail").value.trim();
-    const org=document.getElementById("contactOrg").value.trim();
-    const address=document.getElementById("contactAddress").value.trim();
-    if(!name&&!phone&&!email&&!org&&!address)return "";
-    return "BEGIN:VCARD\nVERSION:3.0\nN:"+name.replace(/\n/g," ")+"\nFN:"+name.replace(/\n/g," ")+"\nTEL:"+phone+"\nEMAIL:"+email+"\nORG:"+org+"\nADR:;;"+address.replace(/\n/g," ")+";;;;\nEND:VCARD";
-  }
+  const name=document.getElementById("contactName").value.trim().replace(/\r?\n/g," ");
+  const phone=document.getElementById("contactPhone").value.trim().replace(/[^\d+]/g,"");
+  const email=document.getElementById("contactEmail").value.trim();
+  const org=document.getElementById("contactOrg").value.trim().replace(/\r?\n/g," ");
+  const address=document.getElementById("contactAddress").value.trim().replace(/\r?\n/g," ");
+  if(!name&&!phone&&!email&&!org&&!address)return "";
+  const parts=["BEGIN:VCARD","VERSION:3.0"];
+  if(name)parts.push("N:"+name+";;;;","FN:"+name);
+  if(phone)parts.push("TEL;TYPE=CELL:"+phone);
+  if(email)parts.push("EMAIL;TYPE=INTERNET:"+email);
+  if(org)parts.push("ORG:"+org);
+  if(address)parts.push("ADR;TYPE=HOME:;;"+address+";;;;");
+  parts.push("END:VCARD");
+  return parts.join("\r\n");
+}
   if(currentType==="sms"){
     const phone=document.getElementById("smsPhone").value.trim(), message=document.getElementById("smsMessage").value.trim();
     return phone?(message?"SMSTO:"+phone+":"+message:"SMSTO:"+phone):"";
